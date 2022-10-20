@@ -9,5 +9,5 @@ import java.util.List;
 public class Book {
     private String title;
     private int year;
-    private List<String> characters;
+//    private List<String> characters;
 }

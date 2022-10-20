@@ -1,6 +1,12 @@
 package org.yellowteam.mapper;
 
+import org.yellowteam.models.Book;
+import org.yellowteam.models.BookShelf;
+
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 public class JavaJsonMapper implements JavaJsonMapperInterface {
@@ -17,11 +23,24 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
 
         for (var field : fields) {
             field.setAccessible(true);
+            String val = null;
             String name = field.getName();
-            var val = field.get(o);
-            if (val.getClass() == String.class) {
-                val = (String) val;
+
+            if (field.get(o) instanceof List<?> fieldList) {
+                val = "";
+                for (int i = 0; i < fieldList.size(); i++) {
+                    if (i == fieldList.size() - 1) {
+                        val += convertToJson(fieldList.get(i));
+                        break;
+                    } else {
+                        val += convertToJson(fieldList.get(i)) + ",";
+                    }
+                }
+                list.add("\"%s\" : [%n%s]".formatted(name, val));
+                continue;
             }
+
+            val = String.valueOf(field.get(o));
             list.add("\"%s\" : \"%s\"".formatted(name, val));
         }
 
@@ -33,7 +52,7 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
                 result += list.get(i) + ",\n";
             }
         }
-        return result + "}";
+        return result + "}\n";
     }
 
     @Override
