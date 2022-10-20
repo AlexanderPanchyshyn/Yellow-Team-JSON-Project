@@ -6,8 +6,8 @@ import java.util.List;
 
 @AllArgsConstructor
 @Getter @Builder
-public class Book {
-    private String title;
-    private int year;
-    private List<String> characters;
+public class BookShelf {
+    private int width;
+    private int height;
+    private List<Book> books;
 }

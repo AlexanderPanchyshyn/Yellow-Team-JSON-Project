@@ -1,16 +1,19 @@
 package org.yellowteam;
 
-import com.google.gson.JsonObject;
 import org.yellowteam.mapper.JavaJsonMapper;
 import org.yellowteam.models.Book;
+import org.yellowteam.models.BookShelf;
 
-import java.io.File;
+import java.util.Arrays;
 
 public class Main {
-    public static void main(String[] args) {
-        Book book = new Book("Blade Runner");
+    public static void main(String[] args) throws IllegalAccessException {
+        Book book1 = new Book("Blade Runner", 2022, Arrays.asList("Harry", "Bob"));
+        Book book2 = new Book("Bible", 1024, Arrays.asList("God", "Jesus"));
+        BookShelf bookShelf = new BookShelf(20, 50, Arrays.asList(book1, book2));
         JavaJsonMapper mapper = new JavaJsonMapper();
-//        mapper.writeValue(new File("target/car.json"), book);
-        JsonObject jsonObject = new JsonObject();
+        var jsonBook = mapper.toJson(book1);
+        System.out.println(jsonBook);
     }
 }
+
