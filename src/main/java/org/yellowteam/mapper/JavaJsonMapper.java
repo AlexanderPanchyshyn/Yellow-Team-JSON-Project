@@ -33,12 +33,8 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
 
     private String collectValues(String json, List<String> list) {
         for (int i = 0; i < list.size(); i++) {
-            if (i == list.size() - 1) {
-                json += list.get(i) + "\n";
-                break;
-            } else {
-                json += list.get(i) + ",\n";
-            }
+            var pos = i == list.size() - 1 ? "\n" : ",\n";
+            json += list.get(i) + pos;
         }
         return json + "}\n";
     }
