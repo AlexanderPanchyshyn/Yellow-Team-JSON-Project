@@ -8,8 +8,8 @@ import java.util.Arrays;
 
 public class Main {
     public static void main(String[] args) throws IllegalAccessException {
-        Book book1 = new Book("Blade Runner", 2022, Arrays.asList("Marley", "Bob"));
-        Book book2 = new Book("Bible", 1024, Arrays.asList("God", "Jesus"));
+        Book book1 = new Book("Blade Runner", 2022, Arrays.asList("Marley", "Bob"), true);
+        Book book2 = new Book("Bible", 1024, Arrays.asList("God", "Jesus"), false);
         BookShelf bookShelf = new BookShelf(20, 50, Arrays.asList(book1, book2));
         JavaJsonMapper mapper = new JavaJsonMapper();
         var jsonBook = mapper.toJson(bookShelf);
