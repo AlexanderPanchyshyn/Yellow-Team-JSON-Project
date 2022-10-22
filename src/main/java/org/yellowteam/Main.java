@@ -19,9 +19,8 @@ public class Main {
 
         JavaJsonMapper mapper = new JavaJsonMapper();
         var jsonBook = mapper.toJson(bookShelf);
-        System.out.println(bookShelf.getClass().toString());
 
-//        System.out.println(jsonBook);
+        System.out.println(jsonBook);
     }
 }
 

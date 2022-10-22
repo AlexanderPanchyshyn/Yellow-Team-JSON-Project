@@ -2,6 +2,7 @@ package org.yellowteam.mapper;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class JavaJsonMapper implements JavaJsonMapperInterface {
 
@@ -33,20 +34,48 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
                     el instanceof Character ||
                     el instanceof Number ||
                     el instanceof Boolean) {
+
                 convertPrimitiveToJson(name, field.get(o), list);
+
             } else if (field.get(o) instanceof List<?> fieldList) {
+
                 convertNonPrimitiveToJson(name, fieldList, list);
+
             } else {
+
                 convertObjectToJson(name, el, list);
+
             }
         }
     }
 
 
     private void convertObjectToJson(String objName, Object obj, List<String> list) throws IllegalAccessException {
+        int namePos = 0;
+        int numOfFields = obj.getClass().getDeclaredFields().length;
+        String values = "";
+
         list.add("\"%s\":{".formatted(objName));
         convertToJson(obj, list);
-//        list.add("}");
+        list.add("}");
+
+        // Finding the position of a name in a list
+        for (int i = 0; i < list.size(); i++) {
+            if (Objects.equals(list.get(i), "\"%s\":{".formatted(objName))) {
+                namePos = i;
+            }
+        }
+
+        // Creating values list from all object fields and deleting them from main list
+        for (int i = 0; i < numOfFields; i++) {
+            var pos = i == numOfFields - 1 ? "" : ",";
+            values += list.get(namePos + 1) + pos;
+            list.remove(namePos + 1);
+        }
+
+        // Changing name item in main list to one common item - name:{ + values + }
+        list.set(namePos, list.get(namePos) + values + list.get(namePos + 1));
+        list.remove(namePos + 1);
     }
 
     private String collectValues(String json, List<String> list) {
