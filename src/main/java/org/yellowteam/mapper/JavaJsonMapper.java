@@ -1,5 +1,6 @@
 package org.yellowteam.mapper;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -38,6 +39,8 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
 
                 convertPrimitiveToJson(objName, objValue, list);
 
+            } else if (objValue instanceof LocalDateTime) {
+                convertDateToJson(objName, objValue, list);
             } else if (objValue instanceof List<?> fieldList) {
 
                 convertArrayToJson(objName, fieldList, list);
@@ -48,6 +51,10 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
 
             }
         }
+    }
+
+    private void convertDateToJson(String objName, Object objValue, List<String> list) {
+        list.add("\"%s\":\"%s\"".formatted(objName, objValue.toString()));
     }
 
 
