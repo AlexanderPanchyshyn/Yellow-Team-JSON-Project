@@ -10,6 +10,8 @@ import org.yellowteam.models.BookShelf;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 public class ToJsonTests {
     JavaJsonMapper mapper = new JavaJsonMapper();
 
@@ -20,19 +22,13 @@ public class ToJsonTests {
         Author author1 = new Author("John Doe", 56, LocalDateTime.of(1953, 10, 20, 10, 5));
         Author author2 = new Author("Rebekka Mayor", 37, LocalDateTime.of(1985, 5, 4, 8, 10));
 
-        Book book1 = new Book("Blade Runner", 2022, Arrays.asList("Marley", "Bob"), true, author1);
-        Book book2 = new Book("Bible", 1024, Arrays.asList("God", "Jesus"), false, author2);
-
-        BookShelf bookShelf = new BookShelf(20, 50, Arrays.asList(book1, book2));
-
         //When
         var jsonAuthor = mapper.toJson(author1);
         var jsonAuthor2 = mapper.toJson(author2);
 
         //Then
-        System.out.println(jsonAuthor);
-        System.out.println(jsonAuthor2);
-        System.out.println("-------------------------------------");
+        assertThat(jsonAuthor).isEqualTo("{\"name\":\"John Doe\",\"age\":\"56\",\"dateOfBirth\":\"1953-10-20T10:05\"}");
+        assertThat(jsonAuthor2).isEqualTo(new JavaJsonMapper().toJson(author2));
     }
 
     @Test
@@ -52,6 +48,9 @@ public class ToJsonTests {
         var jsonBook3 = mapper.toJson(book3);
 
         //Then
+        assertThat(jsonBook).isEqualTo(new JavaJsonMapper().toJson(book1));
+        assertThat(jsonBook2).isEqualTo("{\"title\":\"Bible\",\"year\":\"1024\",\"characters\":[\"God\",\"Jesus\",\"Messiah\"],\"isOriginalEdition\":\"false\",\"author\":{\"name\":\"Oleg Tichina\",\"age\":\"37\",\"dateOfBirth\":\"1921-05-04T08:10\"}}");
+        assertThat(jsonBook2).isNotEqualTo(jsonBook3);
         System.out.println(jsonBook);
         System.out.println(jsonBook2);
         System.out.println(jsonBook3);
@@ -74,6 +73,7 @@ public class ToJsonTests {
         var bookshelf = mapper.toJson(bookShelf);
 
         //Then
+        assertThat(bookshelf).isEqualTo("{\"width\":\"20\",\"height\":\"50\",\"books\":[{\"title\":\"Ognivo\",\"year\":\"2022\",\"characters\":[\"Jack\",\"Chelsey\",\"Abraham\"],\"isOriginalEdition\":\"true\",\"author\":{\"name\":\"John Does\",\"age\":\"42\",\"dateOfBirth\":\"1975-04-20T10:05\"}},{\"title\":\"Truth\",\"year\":\"1024\",\"characters\":[\"God\",\"Jesus\"],\"isOriginalEdition\":\"false\",\"author\":{\"name\":\"Ivan Skoropadski\",\"age\":\"64\",\"dateOfBirth\":\"1966-02-01T08:10\"}}]}");
         System.out.println(bookshelf);
         System.out.println("-------------------------------------");
     }

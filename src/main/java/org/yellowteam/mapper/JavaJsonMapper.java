@@ -1,8 +1,10 @@
 package org.yellowteam.mapper;
 
+import javax.xml.crypto.Data;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
@@ -56,6 +58,10 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
 
     private void convertDateToJson(String objName, Object objValue, List<String> list) {
         list.add("\"%s\":\"%s\"".formatted(objName, objValue.toString()));
+    }
+
+    private String convertDateValueToJson(Object element) {
+        return "\"%s\"".formatted(element.toString());
     }
 
 
@@ -117,7 +123,8 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
                 objValue instanceof Boolean) {
 
             value += convertPrimitiveValueToJson(objValue) + itemPos;
-
+        } else if (objValue instanceof LocalDate || objValue instanceof LocalDateTime || objValue instanceof Date) {
+            value += convertDateValueToJson(objValue) + itemPos;
         } else {
             value += toJson(objValue) + itemPos;
         }
@@ -135,6 +142,7 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
 
     @Override
     public <T> T parse(String json, Class<T> cls) {
+
         return null;
     }
 }
