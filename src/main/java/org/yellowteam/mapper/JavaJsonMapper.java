@@ -2,71 +2,126 @@ package org.yellowteam.mapper;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class JavaJsonMapper implements JavaJsonMapperInterface {
 
     @Override
     public String toJson(Object o) throws IllegalAccessException {
-        return convertToJson(o);
-    }
+        String json = "{";
 
-    private String convertToJson(Object o) throws IllegalAccessException {
-        String json = "{\n";
+        //Creating a list, where would be saved all fields and values of incoming object
         List<String> list = new ArrayList<>();
-        var fields = o.getClass().getDeclaredFields();
 
-        for (var field : fields) {
-            field.setAccessible(true);
-            String name = field.getName();
+        //Converting to Json all fields of object and saving it to main list
+        convertToJson(o, list);
 
-            if (field.get(o) instanceof List<?> fieldList) {
-                convertNonPrimitiveToJson(name, fieldList, list);
-            } else {
-                convertPrimitiveToJson(name, field.get(o), list);
-            }
-        }
-
+        //Formatting all incoming list values to proper Json way
         json = collectValues(json, list);
 
         return json;
     }
 
-    private String collectValues(String json, List<String> list) {
+    private void convertToJson(Object object, List<String> list) throws IllegalAccessException {
+        var objFields = object.getClass().getDeclaredFields();
+
+        // Checking what type of field values object has and invoking needed methods
+        for (var field : objFields) {
+            field.setAccessible(true);
+            String objName = field.getName();
+            var objValue = field.get(object);
+
+            if (objValue instanceof String ||
+                    objValue instanceof Character ||
+                    objValue instanceof Number ||
+                    objValue instanceof Boolean) {
+
+                convertPrimitiveToJson(objName, objValue, list);
+
+            } else if (objValue instanceof List<?> fieldList) {
+
+                convertArrayToJson(objName, fieldList, list);
+
+            } else {
+
+                convertObjectToJson(objName, objValue, list);
+
+            }
+        }
+    }
+
+
+    private void convertObjectToJson(String objName, Object obj, List<String> list) throws IllegalAccessException {
+        int namePos = 0;
+        int amountOfObjFields = obj.getClass().getDeclaredFields().length;
+        String objValues = "";
+
+        list.add("\"%s\":{".formatted(objName));
+        convertToJson(obj, list);
+        list.add("}");
+
+        // FORMATTING ALL VALUES IN PROPER JSON WAY
+        // Finding the position of a name in a list
         for (int i = 0; i < list.size(); i++) {
-            var pos = i == list.size() - 1 ? "\n" : ",\n";
-            json += list.get(i) + pos;
+            if (Objects.equals(list.get(i), "\"%s\":{".formatted(objName))) {
+                namePos = i;
+            }
         }
-        return json + "}\n";
+
+        // Creating values list from all object fields and deleting them from main list
+        for (int i = 0; i < amountOfObjFields; i++) {
+            var pos = i == amountOfObjFields - 1 ? "" : ",";
+
+            objValues += list.get(namePos + 1) + pos;
+            list.remove(namePos + 1);
+        }
+
+        // Changing name item in main list to one common item - name:{ + values + }
+        list.set(namePos, list.get(namePos) + objValues + list.get(namePos + 1));
+        list.remove(namePos + 1);
     }
 
-    private void convertNonPrimitiveToJson(String name, List<?> fieldList, List<String> list) throws IllegalAccessException {
-        String val = "";
+    private void convertArrayToJson(String objName, List<?> fieldList, List<String> list) throws IllegalAccessException {
+        String value = "";
+
         for (int i = 0; i < fieldList.size(); i++) {
-            var el = fieldList.get(i);
-            var pos = i == fieldList.size() - 1 ? "" : ",";
-            val = typeChecker(el, val, pos);
+            var objValue = fieldList.get(i);
+            var itemPos = i == fieldList.size() - 1 ? "" : ",";
+
+            value = typeChecker(objValue, value, itemPos);
         }
-        list.add("\t\"%s\" : [%n\t%s]".formatted(name, val));
+
+        list.add("\"%s\":[%s]".formatted(objName, value));
     }
 
-    private String typeChecker(Object el, String val, String pos) throws IllegalAccessException {
-        if (el instanceof String ||
-                el instanceof Character ||
-                el instanceof Number ||
-                el instanceof Boolean) {
-            val += convertPrimitiveValueToJson(el) + pos;
-        } else {
-            val += convertToJson(el) + pos;
-        }
-        return val;
-    }
-
-    private void convertPrimitiveToJson(String name, Object obj, List<String> list) {
-        list.add("\t\"%s\" : \"%s\"".formatted(name, String.valueOf(obj)));
+    private void convertPrimitiveToJson(String objName, Object obj, List<String> list) {
+        list.add("\"%s\":\"%s\"".formatted(objName, String.valueOf(obj)));
     }
 
     private String convertPrimitiveValueToJson(Object element) {
         return "\"%s\"".formatted(String.valueOf(element));
+    }
+
+    private String typeChecker(Object objValue, String value, String itemPos) throws IllegalAccessException {
+        if (objValue instanceof String ||
+                objValue instanceof Character ||
+                objValue instanceof Number ||
+                objValue instanceof Boolean) {
+
+            value += convertPrimitiveValueToJson(objValue) + itemPos;
+
+        } else {
+            value += toJson(objValue) + itemPos;
+        }
+        return value;
+    }
+
+    private String collectValues(String json, List<String> list) {
+        for (int i = 0; i < list.size(); i++) {
+            var itemPos = i == list.size() - 1 ? "" : ",";
+            json += list.get(i) + itemPos;
+        }
+        return json + "}";
     }
 
 

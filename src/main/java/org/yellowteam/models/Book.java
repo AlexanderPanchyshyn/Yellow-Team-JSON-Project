@@ -11,4 +11,5 @@ public class Book {
     private int year;
     private List<String> characters;
     private boolean isOriginalEdition;
+    private Author author;
 }
