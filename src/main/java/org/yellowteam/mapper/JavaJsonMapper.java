@@ -144,7 +144,7 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
         return null;
     }
 
-    public String prettifyJsonToReadableView(String uglyJsonString) {
+    public String prettifyJsonToReadableView(String uglyJsonString, int spaceValue) {
         StringBuilder jsonPrettifyBuilder = new StringBuilder();
         int indentLevel = 0;
         boolean prettify = false;
@@ -161,25 +161,23 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
                         jsonPrettifyBuilder.append(charFromUglyJson);
                     }
                     break;
-                case '{':
-                case '[':
+                case '{', '[':
                     // Starting a new block: increase the indent level
                     jsonPrettifyBuilder.append(charFromUglyJson);
                     indentLevel++;
-                    appendIndentedNewLine(indentLevel, jsonPrettifyBuilder);
+                    appendIndentedNewLine(indentLevel, jsonPrettifyBuilder, spaceValue);
                     break;
-                case '}':
-                case ']':
+                case '}', ']':
                     // Ending a new block; decrease the indent level
                     indentLevel--;
-                    appendIndentedNewLine(indentLevel, jsonPrettifyBuilder);
+                    appendIndentedNewLine(indentLevel, jsonPrettifyBuilder, spaceValue);
                     jsonPrettifyBuilder.append(charFromUglyJson);
                     break;
                 case ',':
                     // Ending a json item; create a new line after
                     jsonPrettifyBuilder.append(charFromUglyJson);
                     if (!prettify) {
-                        appendIndentedNewLine(indentLevel, jsonPrettifyBuilder);
+                        appendIndentedNewLine(indentLevel, jsonPrettifyBuilder, spaceValue);
                     }
                     break;
                 default:
@@ -189,10 +187,15 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
         return jsonPrettifyBuilder.toString();
     }
 
-    private static void appendIndentedNewLine(int indentLevel, StringBuilder stringBuilder) {
+    private static void appendIndentedNewLine(int indentLevel, StringBuilder stringBuilder, int spaceValue) {
+        var spaces = "";
+        for (int i = 0; i < spaceValue; i++) {
+            spaces += " ";
+        }
+
         stringBuilder.append("\n");
-        // Assuming indention using 2 spaces
-        stringBuilder.append("  ".repeat(Math.max(0, indentLevel)));
+        // Assuming indention using tabulation from wanted amount of spaces
+        stringBuilder.append(spaces.repeat(Math.max(0, indentLevel)));
     }
 
 }
