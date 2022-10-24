@@ -20,4 +20,3 @@ Project is created with:
 - [@Maciej Matusz](https://github.com/TheSuperiorMatusz)
 - [@Alexander Panchyshyn](https://github.com/AlexanderPanchyshyn)
 - [@Illia](https://github.com/hokka1do)
-- [@Mehdi Zeynalov](https://github.com/mehdiznll)
