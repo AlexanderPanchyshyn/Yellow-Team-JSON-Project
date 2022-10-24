@@ -13,6 +13,8 @@ Process actors and their goals
 | User  | Wants to add book to his personal bookshelf |
 | User  | Wants to update his personal bookshelf      |
 | User  | Wants to delete his personal bookshelf      |
+| User  | Want to add a new Author to database        |
+| User  | Want search for the book with given author  |
    
 
 
@@ -53,4 +55,12 @@ The user choose a book to add. System add the book to user personal bookshelf. T
 ### Use case 7: User delete his personal bookshelf
 A user logs in to the system. The user selects option manage bookshelf.Then select delete his personal bookshelf.
 System delete the user bookshelf. The system displays a message.
+
+### Use case 8: User add new author
+A user logs in to the system. The user selects option manage authors. Then select add author to authors  database.
+The user fulfill information about author.System add author to  database. The system displays a message.
+
+### Use case 9: User search for books with given author
+A user logs in to the system. The user selects option manage books. Then select search books with author from book database.
+The user fulfill information about author. System search books with given author to database. The system displays a message.
 
