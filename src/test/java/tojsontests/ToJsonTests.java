@@ -84,7 +84,7 @@ public class ToJsonTests {
         Author author1 = new Author("John Doe", 56, LocalDateTime.of(1953, 10, 20, 10, 5));
 
         //When
-        String pretty = mapper.prettifyJsonToReadableView(mapper.toJson(author1));
+        String pretty = mapper.prettifyJsonToReadableView(mapper.toJson(author1), 2);
 
         //Then
         System.out.println(pretty);
