@@ -1,6 +1,5 @@
 package org.yellowteam.mapper;
 
-import javax.xml.crypto.Data;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -139,10 +138,61 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
         return json + "}";
     }
 
-
     @Override
     public <T> T parse(String json, Class<T> cls) {
 
         return null;
     }
+
+    public String prettifyJsonToReadableView(String uglyJsonString) {
+        StringBuilder jsonPrettifyBuilder = new StringBuilder();
+        int indentLevel = 0;
+        boolean prettify = false;
+        for (char charFromUglyJson : uglyJsonString.toCharArray()) {
+            switch (charFromUglyJson) {
+                case '"':
+                    // switch the prettify status
+                    prettify = !prettify;
+                    jsonPrettifyBuilder.append(charFromUglyJson);
+                    break;
+                case ' ':
+                    // For space: ignore the space if it is not being quoted.
+                    if (prettify) {
+                        jsonPrettifyBuilder.append(charFromUglyJson);
+                    }
+                    break;
+                case '{':
+                case '[':
+                    // Starting a new block: increase the indent level
+                    jsonPrettifyBuilder.append(charFromUglyJson);
+                    indentLevel++;
+                    appendIndentedNewLine(indentLevel, jsonPrettifyBuilder);
+                    break;
+                case '}':
+                case ']':
+                    // Ending a new block; decrease the indent level
+                    indentLevel--;
+                    appendIndentedNewLine(indentLevel, jsonPrettifyBuilder);
+                    jsonPrettifyBuilder.append(charFromUglyJson);
+                    break;
+                case ',':
+                    // Ending a json item; create a new line after
+                    jsonPrettifyBuilder.append(charFromUglyJson);
+                    if (!prettify) {
+                        appendIndentedNewLine(indentLevel, jsonPrettifyBuilder);
+                    }
+                    break;
+                default:
+                    jsonPrettifyBuilder.append(charFromUglyJson);
+            }
+        }
+        return jsonPrettifyBuilder.toString();
+    }
+
+    private static void appendIndentedNewLine(int indentLevel, StringBuilder stringBuilder) {
+        stringBuilder.append("\n");
+        // Assuming indention using 2 spaces
+        stringBuilder.append("  ".repeat(Math.max(0, indentLevel)));
+    }
+
 }
