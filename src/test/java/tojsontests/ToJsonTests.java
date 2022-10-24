@@ -77,4 +77,16 @@ public class ToJsonTests {
         System.out.println(bookshelf);
         System.out.println("-------------------------------------");
     }
+
+    @Test
+    void givenUglyJsonFileWhenUsingPrettifyingFormatterThanReceivePrettyJson() throws IllegalAccessException {
+        //Given
+        Author author1 = new Author("John Doe", 56, LocalDateTime.of(1953, 10, 20, 10, 5));
+
+        //When
+        String pretty = mapper.prettifyJsonToReadableView(mapper.toJson(author1));
+
+        //Then
+        System.out.println(pretty);
+    }
 }
