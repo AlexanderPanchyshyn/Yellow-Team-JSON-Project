@@ -198,26 +198,31 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
 
     public String prettifyJsonToReadableView(String uglyJsonString, int spaceValue) {
         StringBuilder jsonPrettifyBuilder = new StringBuilder();
-        int indentValue;
         consume = ch -> jsonPrettifyBuilder.append((char) ch);
         state = starter;
+        tabulation = 0;
+        spaces = spaceValue;
         uglyJsonString.codePoints().forEach(ch -> state.accept(ch));
         return jsonPrettifyBuilder.toString();
     }
 
     IntConsumer
-            consume,
-            state,
-            starter = ch -> {
+            consume;
+    int spaces;
+    int tabulation;
+    IntConsumer state;
+    IntConsumer starter = ch -> {
                 if (ch == '{') {
+                    tabulation += spaces;
                     consume.accept(ch);
                     consume.accept('\n');
-                    consume.accept(indentLevel());
+                    for (int i = 0; i < tabulation; i++){
+                        consume.accept(indentLevel());
+                    }
                     this.state = this.object;
                 } else if (ch == '[') {
                     consume.accept(ch);
                     consume.accept('\n');
-                    consume.accept(indentLevel());
                     this.state = this.array;
                 } else if (ch == ',') {
                     consume.accept(ch);
@@ -237,11 +242,10 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
                 } else {
                     consume.accept(ch);
                 }
-            },
-            object = ch -> {
+            };
+    IntConsumer object = ch -> {
                 if (ch == '[') {
                     consume.accept(ch);
-                    consume.accept(indentLevel());
                     this.state = this.array;
                 } else if (ch == '"') {
                     consume.accept(ch);
@@ -249,11 +253,10 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
                 } else if (ch == '{') {
                     consume.accept(ch);
                     consume.accept('\n');
-                    consume.accept(indentLevel());
                     this.state = this.starter;
                 }
-            },
-            array = ch -> {
+            };
+    IntConsumer array = ch -> {
                 if (ch == '{') {
                     consume.accept(indentLevel());
                     this.state = this.object;
@@ -261,8 +264,8 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
                     consume.accept(ch);
                     this.state = this.innerStringBlock;
                 }
-            },
-            innerStringBlock = ch -> {
+            };
+    IntConsumer innerStringBlock = ch -> {
                 if (ch == '\\') {
                     this.state = this.escape;
                 } else if (ch == '"') {
@@ -274,8 +277,8 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
                 }*/ else {
                     consume.accept(ch);
                 }
-            },
-            escape = ch -> {
+            };
+    IntConsumer escape = ch -> {
                 if ("\"\\/bfnrt".indexOf((char) ch) != -1) {
                     consume.accept(ch);
                     this.state = this.innerStringBlock;

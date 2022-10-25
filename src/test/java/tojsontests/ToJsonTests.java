@@ -92,7 +92,7 @@ class ToJsonTests {
 
         //When
         var bookshelf = mapper.toJson(book1);
-        String pretty = mapper.prettifyJsonToReadableView(mapper.toJson(book1), 2);
+        String pretty = mapper.prettifyJsonToReadableView(mapper.toJson(book1), 6);
 
         //Then
         System.out.println(pretty);
