@@ -12,7 +12,7 @@ import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ToJsonTests {
+class ToJsonTests {
     JavaJsonMapper mapper = new JavaJsonMapper();
 
     @Test
@@ -27,7 +27,7 @@ public class ToJsonTests {
         var jsonAuthor2 = mapper.toJson(author2);
 
         //Then
-        assertThat(jsonAuthor).isEqualTo("{\"name\":\"John Doe\",\"age\":\"56\",\"dateOfBirth\":\"1953-10-20T10:05\"}");
+        assertThat(jsonAuthor).isEqualTo("{\"name\":\"John Doe\",\"age\":56,\"dateOfBirth\":\"1953-10-20T10:05\"}");
         assertThat(jsonAuthor2).isEqualTo(new JavaJsonMapper().toJson(author2));
     }
 
@@ -49,7 +49,7 @@ public class ToJsonTests {
 
         //Then
         assertThat(jsonBook).isEqualTo(new JavaJsonMapper().toJson(book1));
-        assertThat(jsonBook2).isEqualTo("{\"title\":\"Bible\",\"year\":\"1024\",\"characters\":[\"God\",\"Jesus\",\"Messiah\"],\"isOriginalEdition\":\"false\",\"author\":{\"name\":\"Oleg Tichina\",\"age\":\"37\",\"dateOfBirth\":\"1921-05-04T08:10\"}}");
+        assertThat(jsonBook2).isEqualTo("{\"title\":\"Bible\",\"year\":1024,\"characters\":[\"God\",\"Jesus\",\"Messiah\"],\"isOriginalEdition\":false,\"author\":{\"name\":\"Oleg Tichina\",\"age\":37,\"dateOfBirth\":\"1921-05-04T08:10\"}}");
         assertThat(jsonBook2).isNotEqualTo(jsonBook3);
         System.out.println(jsonBook);
         System.out.println(jsonBook2);
@@ -73,7 +73,7 @@ public class ToJsonTests {
         var bookshelf = mapper.toJson(bookShelf);
 
         //Then
-        assertThat(bookshelf).isEqualTo("{\"width\":\"20\",\"height\":\"50\",\"books\":[{\"title\":\"Ognivo\",\"year\":\"2022\",\"characters\":[\"Jack\",\"Chelsey\",\"Abraham\"],\"isOriginalEdition\":\"true\",\"author\":{\"name\":\"John Does\",\"age\":\"42\",\"dateOfBirth\":\"1975-04-20T10:05\"}},{\"title\":\"Truth\",\"year\":\"1024\",\"characters\":[\"God\",\"Jesus\"],\"isOriginalEdition\":\"false\",\"author\":{\"name\":\"Ivan Skoropadski\",\"age\":\"64\",\"dateOfBirth\":\"1966-02-01T08:10\"}}]}");
+        assertThat(bookshelf).isEqualTo("{\"width\":20,\"height\":50,\"books\":[{\"title\":\"Ognivo\",\"year\":2022,\"characters\":[\"Jack\",\"Chelsey\",\"Abraham\"],\"isOriginalEdition\":true,\"author\":{\"name\":\"John Does\",\"age\":42,\"dateOfBirth\":\"1975-04-20T10:05\"}},{\"title\":\"Truth\",\"year\":1024,\"characters\":[\"God\",\"Jesus\"],\"isOriginalEdition\":false,\"author\":{\"name\":\"Ivan Skoropadski\",\"age\":64,\"dateOfBirth\":\"1966-02-01T08:10\"}}]}");
         System.out.println(bookshelf);
         System.out.println("-------------------------------------");
     }
