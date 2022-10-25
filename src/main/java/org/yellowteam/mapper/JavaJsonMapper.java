@@ -108,11 +108,19 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
     }
 
     private void convertPrimitiveToJson(String objName, Object obj, List<String> list) {
-        list.add("\"%s\":\"%s\"".formatted(objName, String.valueOf(obj)));
+        if (obj instanceof Number || obj instanceof Boolean) {
+            list.add("\"%s\":%s".formatted(objName, String.valueOf(obj)));
+        } else {
+            list.add("\"%s\":\"%s\"".formatted(objName, String.valueOf(obj)));
+        }
     }
 
     private String convertPrimitiveValueToJson(Object element) {
-        return "\"%s\"".formatted(String.valueOf(element));
+        if (element instanceof Number || element instanceof Boolean) {
+            return "%s".formatted(String.valueOf(element));
+        } else {
+            return "\"%s\"".formatted(String.valueOf(element));
+        }
     }
 
     private String typeChecker(Object objValue, String value, String itemPos) throws IllegalAccessException {
