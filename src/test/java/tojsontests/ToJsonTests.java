@@ -91,8 +91,8 @@ class ToJsonTests {
         BookShelf bookShelf = new BookShelf(20, 50, Arrays.asList(book1, book2));
 
         //When
-        var bookshelf = mapper.toJson(book1);
-        String pretty = mapper.prettifyJsonToReadableView(mapper.toJson(book1), 6);
+        var bookshelf = mapper.toJson(bookShelf);
+        String pretty = mapper.prettifyJsonToReadableView(bookshelf, 2);
 
         //Then
         System.out.println(pretty);
