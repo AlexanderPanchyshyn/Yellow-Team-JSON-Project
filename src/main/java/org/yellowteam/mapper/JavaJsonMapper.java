@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.IntConsumer;
 
 public class JavaJsonMapper implements JavaJsonMapperInterface {
 
@@ -152,7 +153,7 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
         return null;
     }
 
-    public String prettifyJsonToReadableView(String uglyJsonString, int spaceValue) {
+/*    public String prettifyJsonToReadableViewOld(String uglyJsonString, int spaceValue) {
         StringBuilder jsonPrettifyBuilder = new StringBuilder();
         int indentLevel = 0;
         boolean prettify = false;
@@ -193,7 +194,100 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
             }
         }
         return jsonPrettifyBuilder.toString();
+    }*/
+
+    public String prettifyJsonToReadableView(String uglyJsonString, int spaceValue) {
+        StringBuilder jsonPrettifyBuilder = new StringBuilder();
+        int indentValue;
+        consume = ch -> jsonPrettifyBuilder.append((char) ch);
+        state = starter;
+        uglyJsonString.codePoints().forEach(ch -> state.accept(ch));
+        return jsonPrettifyBuilder.toString();
     }
+
+    IntConsumer
+            consume,
+            state,
+            starter = ch -> {
+                if (ch == '{') {
+                    consume.accept(ch);
+                    consume.accept('\n');
+                    consume.accept(indentLevel());
+                    this.state = this.object;
+                } else if (ch == '[') {
+                    consume.accept(ch);
+                    consume.accept('\n');
+                    consume.accept(indentLevel());
+                    this.state = this.array;
+                } else if (ch == ',') {
+                    consume.accept(ch);
+                    consume.accept('\n');
+                } else if (ch == ']') {
+                    consume.accept('\n');
+                    consume.accept(ch);
+                } else if (ch == '}') {
+                    consume.accept('\n');
+                    consume.accept(ch);
+                } else if (ch == '"') {
+                    consume.accept(ch);
+                    this.state = this.innerStringBlock;
+                } else if (ch == ':') {
+                    consume.accept(ch);
+                    consume.accept(' ');
+                } else {
+                    consume.accept(ch);
+                }
+            },
+            object = ch -> {
+                if (ch == '[') {
+                    consume.accept(ch);
+                    consume.accept(indentLevel());
+                    this.state = this.array;
+                } else if (ch == '"') {
+                    consume.accept(ch);
+                    this.state = this.innerStringBlock;
+                } else if (ch == '{') {
+                    consume.accept(ch);
+                    consume.accept('\n');
+                    consume.accept(indentLevel());
+                    this.state = this.starter;
+                }
+            },
+            array = ch -> {
+                if (ch == '{') {
+                    consume.accept(indentLevel());
+                    this.state = this.object;
+                } else if (ch == '"') {
+                    consume.accept(ch);
+                    this.state = this.innerStringBlock;
+                }
+            },
+            innerStringBlock = ch -> {
+                if (ch == '\\') {
+                    this.state = this.escape;
+                } else if (ch == '"') {
+                    consume.accept(ch);
+                    this.state = this.starter;
+                } /*else if (ch == ',') {
+                    consume.accept(ch);
+                    consume.accept('\n');
+                }*/ else {
+                    consume.accept(ch);
+                }
+            },
+            escape = ch -> {
+                if ("\"\\/bfnrt".indexOf((char) ch) != -1) {
+                    consume.accept(ch);
+                    this.state = this.innerStringBlock;
+                } else {
+                    throw new IllegalArgumentException("Unknown state escape: \\" + (char) ch);
+                }
+            };
+
+    private char indentLevel() {
+        return ' ';
+    }
+
 
     private static void appendIndentedNewLine(int indentLevel, StringBuilder stringBuilder, int spaceValue) {
         var spaces = "";
