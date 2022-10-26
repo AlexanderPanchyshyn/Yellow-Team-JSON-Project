@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.IntConsumer;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -254,32 +255,162 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
         return parse(json);
     }
 
+    public JavaJsonMapper () {
+        this.json = "";
+        matcher = null;
+    }
+
     private Map<String, Object> parse(String json) {
-        Map<String, Object> res = new LinkedHashMap<>();
+        return new JavaJsonMapper(json).parse();
+    }
 
-        Pattern stringPattern = Pattern.compile("\"([^\"]+)\"\\s*:\\s*\"([^\"]+)\",?");
-        Matcher stringMatcher = stringPattern.matcher(json);
+    private static final Pattern
+            WHITESPACE = Pattern.compile("\\s+"),
+            LEFT_CURLY_BRACKET = Pattern.compile("\\{"),
+            RIGHT_CURLY_BRACKET = Pattern.compile("}"),
+            LEFT_BRACKET = Pattern.compile("\\["),
+            RIGHT_BRACKET = Pattern.compile("]"),
+            COMMA = Pattern.compile(","),
+            DOUBLE_QUOTES = Pattern.compile("\""),
+            COLON = Pattern.compile(":"),
+            KEY_OR_STRING_VALUE = Pattern.compile("[^\"]+"),
+//            STRING = Pattern.compile("\"([^\"]+)\""),
+            BOOLEAN = Pattern.compile("true|false"),
+            INTEGER = Pattern.compile("-?\\d+"),
+            DECIMAL = Pattern.compile("-?(0|[1-9]\\d*)\\.\\d+([eE][-+]?\\d+)?");
 
-        Pattern numberPattern = Pattern.compile("\"([^\"]+)\"\\s*:\\s*(\\d+),?");
-        Matcher numberMatcher = numberPattern.matcher(json);
+    private final String json;
+    private final Map<String, Object> result = new LinkedHashMap<>();
+    private final Matcher matcher;
+    private int cursor = 0;
+    private String key = "";
+    private Object value = null;
 
-        Pattern booleanPattern = Pattern.compile("\"([^\"]+)\"\\s*:\\s*(true|false),?");
-        Matcher booleanMatcher = booleanPattern.matcher(json);
+    public JavaJsonMapper(String json) {
+        this.json = json;
+        matcher = WHITESPACE.matcher(json);
+    }
 
-        while (true) {
-            if (stringMatcher.find()) {
-                res.put(stringMatcher.group(1), stringMatcher.group(2));
-            } else if (numberMatcher.find()) {
-                var number = parseInt(numberMatcher.group(2));
-                res.put(numberMatcher.group(1), number);
-            } else if (booleanMatcher.find()) {
-                var bool = parseBoolean(booleanMatcher.group(2));
-                res.put(booleanMatcher.group(1), bool);
-            } else {
-                break;
-            }
+    interface State extends Supplier<State> {
+    }
+
+    private Map<String, Object> parse() {
+        State parseState = this::start;
+        while (parseState != null) {
+            parseState = parseState.get();
+        }
+        return result;
+    }
+
+    private boolean tryAdvance(Pattern pattern) {
+        if (matcher.region(cursor, matcher.regionEnd())
+                .usePattern(pattern).lookingAt()
+        ) {
+            cursor = matcher.end();
+            return true;
+        }
+        return false;
+    }
+
+    private State start() {
+        tryAdvance(WHITESPACE);
+        return this::consumeLeftCurlyBracket;
+    }
+
+    private State consumeLeftCurlyBracket() {
+        if (tryAdvance(LEFT_CURLY_BRACKET)) {
+            return this::consumeOpenedDoubleQuotes;
+        }
+        throw new IllegalStateException("Expecting '{'");
+    }
+
+    private State consumeOpenedDoubleQuotes() {
+        tryAdvance(WHITESPACE);
+        if (tryAdvance(DOUBLE_QUOTES)) {
+            return this::consumeKey;
+        }
+        throw new IllegalStateException("Expecting '\"'");
+    }
+
+    private State consumeKey() {
+        if (tryAdvance(KEY_OR_STRING_VALUE)) {
+            key = String.valueOf(matcher.group());
+        } else {
+            key = " ";
+        }
+        return this::consumeClosedDoubleQuotes;
+    }
+
+    private State consumeClosedDoubleQuotes() {
+        tryAdvance(DOUBLE_QUOTES);
+        if (value == null) {
+            return this::consumeColon;
+        } else {
+            value = null;
+            return this::consumeCommaOrRightCurlyBracket;
+        }
+    }
+
+    private State consumeColon() {
+        tryAdvance(WHITESPACE);
+        if (tryAdvance(COLON)) {
+            return this::consumeValue;
+        }
+        throw new IllegalStateException("Expecting ':'");
+    }
+
+    private State consumeValue() {
+        tryAdvance(WHITESPACE);
+        if (tryAdvance(DOUBLE_QUOTES)) {
+            return this::consumeStringValue;
+        } else if (tryAdvance(DECIMAL)) {
+            value = Double.valueOf(matcher.group());
+            result.put(key, value);
+            key = "";
+            value = null;
+            return this::consumeCommaOrRightCurlyBracket;
+        } else if (tryAdvance(INTEGER)) {
+            value = Integer.valueOf(matcher.group());
+            result.put(key, value);
+            key = "";
+            value = null;
+            return this::consumeCommaOrRightCurlyBracket;
+        } else if (tryAdvance(BOOLEAN)) {
+            value = Boolean.valueOf(matcher.group());
+            result.put(key, value);
+            key = "";
+            value = null;
+            return this::consumeCommaOrRightCurlyBracket;
+        } else {
+            value = " ";
+            result.put(key, value);
+            key = "";
+            value = null;
+            return this::consumeCommaOrRightCurlyBracket;
+        }
+    }
+
+    private State consumeStringValue() {
+        if (tryAdvance(KEY_OR_STRING_VALUE)) {
+            value = String.valueOf(matcher.group());
+        } else {
+            value = " ";
         }
 
-        return res;
+        result.put(key, value);
+        key = "";
+        return this::consumeClosedDoubleQuotes;
+    }
+
+    private State consumeCommaOrRightCurlyBracket() {
+        tryAdvance(WHITESPACE);
+        if (tryAdvance(COMMA)) {
+            return this::consumeOpenedDoubleQuotes;
+        }
+        if (tryAdvance(RIGHT_CURLY_BRACKET)) {
+            return null;
+        }
+        System.out.println(result);
+        throw new IllegalStateException("Expecting ',' or '}'");
     }
 }
