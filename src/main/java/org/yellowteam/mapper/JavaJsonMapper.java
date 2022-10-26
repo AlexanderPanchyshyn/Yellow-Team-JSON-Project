@@ -7,6 +7,9 @@ import java.util.function.IntConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static java.lang.Boolean.parseBoolean;
+import static java.lang.Integer.parseInt;
+
 public class JavaJsonMapper implements JavaJsonMapperInterface {
 
     @Override
@@ -253,11 +256,28 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
 
     private Map<String, Object> parse(String json) {
         Map<String, Object> res = new LinkedHashMap<>();
-        Pattern pattern = Pattern.compile("\"([^\"]+)\"\\s*:\\s*\"([^\"]+)\",?");
-        Matcher matcher = pattern.matcher(json);
 
-        while (matcher.find()) {
-            res.put(matcher.group(1), matcher.group(2));
+        Pattern stringPattern = Pattern.compile("\"([^\"]+)\"\\s*:\\s*\"([^\"]+)\",?");
+        Matcher stringMatcher = stringPattern.matcher(json);
+
+        Pattern numberPattern = Pattern.compile("\"([^\"]+)\"\\s*:\\s*(\\d+),?");
+        Matcher numberMatcher = numberPattern.matcher(json);
+
+        Pattern booleanPattern = Pattern.compile("\"([^\"]+)\"\\s*:\\s*(true|false),?");
+        Matcher booleanMatcher = booleanPattern.matcher(json);
+
+        while (true) {
+            if (stringMatcher.find()) {
+                res.put(stringMatcher.group(1), stringMatcher.group(2));
+            } else if (numberMatcher.find()) {
+                var number = parseInt(numberMatcher.group(2));
+                res.put(numberMatcher.group(1), number);
+            } else if (booleanMatcher.find()) {
+                var bool = parseBoolean(booleanMatcher.group(2));
+                res.put(booleanMatcher.group(1), bool);
+            } else {
+                break;
+            }
         }
 
         return res;
