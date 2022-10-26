@@ -2,11 +2,10 @@ package org.yellowteam.mapper;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.IntConsumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class JavaJsonMapper implements JavaJsonMapperInterface {
 
@@ -147,12 +146,6 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
         return json + "}";
     }
 
-    @Override
-    public <T> T parse(String json, Class<T> cls) {
-
-        return null;
-    }
-
     public String prettifyJsonToReadableView(String uglyJsonString, int spaceValue) {
         StringBuilder jsonPrettifyBuilder = new StringBuilder();
         consume = ch -> jsonPrettifyBuilder.append((char) ch);
@@ -251,5 +244,22 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
             consume.accept(' ');
         }
         consume.accept(ch);
+    }
+
+    @Override
+    public Map<String, Object> mapFromJson(String json) {
+        return parse(json);
+    }
+
+    private Map<String, Object> parse(String json) {
+        Map<String, Object> res = new LinkedHashMap<>();
+        Pattern pattern = Pattern.compile("\"([^\"]+)\"\\s*:\\s*\"([^\"]+)\",?");
+        Matcher matcher = pattern.matcher(json);
+
+        while (matcher.find()) {
+            res.put(matcher.group(1), matcher.group(2));
+        }
+
+        return res;
     }
 }
