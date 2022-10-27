@@ -4,7 +4,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.yellowteam.mapper.JavaJsonMapper;
 
-import java.util.Map;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -39,5 +39,15 @@ class ParseTest {
         var obj = mapper.mapFromJson(json);
 
         assertThat(obj).isEqualTo(Map.of("name", "Nick", "surName", "Johnson", "age", 25, "married", false, "hobby", "chess"));
+    }
+
+    @Test
+    @DisplayName("Parsing to String, Number, Boolean and Array Objects")
+    void jsonToArray() {
+        String json = "{\"name\":\"Nick\",\"surName\":\"Johnson\",\"age\":25,\"data\":[16,false,3.14,\"word\"]}";
+
+        var obj = mapper.mapFromJson(json);
+
+        assertThat(obj).isEqualTo(Map.of("name", "Nick", "surName", "Johnson", "age", 25, "data", Arrays.asList(16, false, 3.14, "word")));
     }
 }
