@@ -1,7 +1,9 @@
 package org.yellowteam.mapper;
 
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.function.IntConsumer;
 import java.util.function.Supplier;
@@ -12,7 +14,9 @@ import static java.lang.Boolean.parseBoolean;
 import static java.lang.Integer.parseInt;
 
 public class JavaJsonMapper implements JavaJsonMapperInterface {
-
+    String prevDatePattern;
+    String currDatePattern="dd-MM-yyyy";
+    DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(currDatePattern);
     @Override
     public String toJson(Object o) throws IllegalAccessException {
         String json = "{";
@@ -46,6 +50,7 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
                 convertPrimitiveToJson(objName, objValue, list);
 
             } else if (objValue instanceof LocalDateTime || objValue instanceof LocalDate) {
+
                 convertDateToJson(objName, objValue, list);
             } else if (objValue instanceof List<?> fieldList) {
 
@@ -58,13 +63,24 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
             }
         }
     }
-
     private void convertDateToJson(String objName, Object objValue, List<String> list) {
-        list.add("\"%s\":\"%s\"".formatted(objName, objValue.toString()));
+        list.add("\"%s\":\"%s\"".formatted(objName, dateFormatter(objValue)));
     }
-
+    private String dateFormatter(Object objValue){
+        if(objValue instanceof LocalDate localDate){
+            return localDate.format(dateTimeFormatter);
+        }
+        if(objValue instanceof  LocalDateTime localDateTime){
+             return localDateTime.format(dateTimeFormatter);
+        }
+        if(objValue instanceof Date date){
+            SimpleDateFormat formatter = new SimpleDateFormat(currDatePattern);
+           return formatter.format(date);
+        }
+        return objValue.toString();
+    }
     private String convertDateValueToJson(Object element) {
-        return "\"%s\"".formatted(element.toString());
+        return "\"%s\"".formatted(dateFormatter(element));
     }
 
 
@@ -141,6 +157,8 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
         }
         return value;
     }
+
+
 
     private String collectValues(String json, List<String> list) {
         for (int i = 0; i < list.size(); i++) {
@@ -289,6 +307,16 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
     public JavaJsonMapper(String json) {
         this.json = json;
         matcher = WHITESPACE.matcher(json);
+    }
+
+    public void setDatePattern(String datePattern) {
+        prevDatePattern = currDatePattern;
+        currDatePattern = datePattern;
+        dateTimeFormatter = DateTimeFormatter.ofPattern(currDatePattern);
+    }
+
+    public String changeDatepattern(String jsonFormatt){
+        return "test";
     }
 
     interface State extends Supplier<State> {

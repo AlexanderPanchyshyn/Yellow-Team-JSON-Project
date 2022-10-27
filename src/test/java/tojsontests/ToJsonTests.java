@@ -144,4 +144,16 @@ class ToJsonTests {
                 "    \"dateOfBirth\": \"1975-04-20T10:05\"\n" +
                 "}");
     }
+    @Test
+    @DisplayName("Date formatter")
+    void dateFormatterTest() throws IllegalAccessException {
+        //Given
+        Author author = new Author("Mark Dwayne", 42, LocalDateTime.of(1975, 4, 20, 10, 5));
+        //When
+        var stringToJson = mapper.toJson(author);
+
+        //Then
+        assertThat(stringToJson).isEqualTo("{\"name\":\"Mark Dwayne\",\"age\":42,\"dateOfBirth\":\"20-04-1975\"}");
+
+    }
 }
