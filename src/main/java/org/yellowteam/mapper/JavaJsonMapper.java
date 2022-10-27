@@ -274,7 +274,7 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
             DOUBLE_QUOTES = Pattern.compile("\""),
             COLON = Pattern.compile(":"),
             KEY_OR_STRING_VALUE = Pattern.compile("[^\"]+"),
-//            STRING = Pattern.compile("\"([^\"]+)\""),
+            CHAR = Pattern.compile("\\w"),
             BOOLEAN = Pattern.compile("true|false"),
             INTEGER = Pattern.compile("-?\\d+"),
             DECIMAL = Pattern.compile("-?(0|[1-9]\\d*)\\.\\d+([eE][-+]?\\d+)?");
@@ -283,8 +283,10 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
     private final Map<String, Object> result = new LinkedHashMap<>();
     private final Matcher matcher;
     private int cursor = 0;
-    private String key = "";
+    private String key = null;
     private Object value = null;
+
+    private List<Object> array = new ArrayList<>();
 
     public JavaJsonMapper(String json) {
         this.json = json;
@@ -363,31 +365,82 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
         tryAdvance(WHITESPACE);
         if (tryAdvance(DOUBLE_QUOTES)) {
             return this::consumeStringValue;
+        } else if (tryAdvance(LEFT_BRACKET)) {
+            return this::consumeArray;
         } else if (tryAdvance(DECIMAL)) {
             value = Double.valueOf(matcher.group());
-            result.put(key, value);
-            key = "";
-            value = null;
+            addToMap();
             return this::consumeCommaOrRightCurlyBracket;
         } else if (tryAdvance(INTEGER)) {
             value = Integer.valueOf(matcher.group());
-            result.put(key, value);
-            key = "";
-            value = null;
+            addToMap();
             return this::consumeCommaOrRightCurlyBracket;
         } else if (tryAdvance(BOOLEAN)) {
             value = Boolean.valueOf(matcher.group());
-            result.put(key, value);
-            key = "";
-            value = null;
+            addToMap();
             return this::consumeCommaOrRightCurlyBracket;
         } else {
             value = " ";
-            result.put(key, value);
-            key = "";
-            value = null;
+            addToMap();
             return this::consumeCommaOrRightCurlyBracket;
         }
+    }
+
+    private State consumeArray() {
+        tryAdvance(WHITESPACE);
+        if (tryAdvance(DECIMAL)) {
+            array.add(Double.valueOf(matcher.group()));
+            return this::consumeCommaOrRightBracket;
+        } else if (tryAdvance(INTEGER)) {
+            array.add(Integer.valueOf(matcher.group()));
+            return this::consumeCommaOrRightBracket;
+        } else if (tryAdvance(BOOLEAN)) {
+            array.add(Boolean.valueOf(matcher.group()));
+            return this::consumeCommaOrRightBracket;
+        } else if (tryAdvance(DOUBLE_QUOTES)) {
+            return this::consumeArrayStringValue;
+        } else {
+            array.add(" ");
+            return this::consumeCommaOrRightBracket;
+        }
+    }
+
+    private State consumeArrayStringValue() {
+        if (tryAdvance(KEY_OR_STRING_VALUE)) {
+            array.add(matcher.group());
+        } else {
+            array.add(" ");
+        }
+        return this::consumeClosedDoubleQuotesInArray;
+    }
+
+    private State consumeClosedDoubleQuotesInArray() {
+        tryAdvance(DOUBLE_QUOTES);
+        return this::consumeCommaOrRightBracket;
+    }
+
+    private State consumeCommaOrRightBracket() {
+        tryAdvance(WHITESPACE);
+        if (tryAdvance(COMMA)) {
+            return this::consumeArray;
+        }
+        if (tryAdvance(RIGHT_BRACKET)) {
+            value = new ArrayList<>();
+
+            for (int i = 0; i < array.size(); i++) {
+                ((ArrayList<Object>)value).add(array.get(i));
+            }
+            addToMap();
+            array.clear();
+            return consumeCommaOrRightCurlyBracket();
+        }
+        throw new IllegalStateException("Expecting ',' or ']'");
+    }
+
+    private void addToMap() {
+        result.put(key, value);
+        key = null;
+        value = null;
     }
 
     private State consumeStringValue() {
@@ -398,7 +451,7 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
         }
 
         result.put(key, value);
-        key = "";
+        key = null;
         return this::consumeClosedDoubleQuotes;
     }
 
@@ -410,7 +463,6 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
         if (tryAdvance(RIGHT_CURLY_BRACKET)) {
             return null;
         }
-        System.out.println(result);
         throw new IllegalStateException("Expecting ',' or '}'");
     }
 }
