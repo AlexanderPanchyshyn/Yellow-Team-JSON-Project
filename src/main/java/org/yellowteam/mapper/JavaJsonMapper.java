@@ -8,9 +8,6 @@ import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static java.lang.Boolean.parseBoolean;
-import static java.lang.Integer.parseInt;
-
 public class JavaJsonMapper implements JavaJsonMapperInterface {
 
     @Override
@@ -271,10 +268,8 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
             LEFT_BRACKET = Pattern.compile("\\["),
             RIGHT_BRACKET = Pattern.compile("]"),
             COMMA = Pattern.compile(","),
-            DOUBLE_QUOTES = Pattern.compile("\""),
             COLON = Pattern.compile(":"),
-            KEY_OR_STRING_VALUE = Pattern.compile("[^\"]+"),
-            CHAR = Pattern.compile("\\w"),
+            STRING = Pattern.compile("\"([^\"]+)\""),
             BOOLEAN = Pattern.compile("true|false"),
             INTEGER = Pattern.compile("-?\\d+"),
             DECIMAL = Pattern.compile("-?(0|[1-9]\\d*)\\.\\d+([eE][-+]?\\d+)?");
@@ -321,30 +316,17 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
 
     private State consumeLeftCurlyBracket() {
         if (tryAdvance(LEFT_CURLY_BRACKET)) {
-            return this::consumeOpenedDoubleQuotes;
+            return this::consumeKey;
         }
         throw new IllegalStateException("Expecting '{'");
     }
 
-    private State consumeOpenedDoubleQuotes() {
-        tryAdvance(WHITESPACE);
-        if (tryAdvance(DOUBLE_QUOTES)) {
-            return this::consumeKey;
-        }
-        throw new IllegalStateException("Expecting '\"'");
-    }
-
     private State consumeKey() {
-        if (tryAdvance(KEY_OR_STRING_VALUE)) {
-            key = String.valueOf(matcher.group());
+        if (tryAdvance(STRING)) {
+            key = String.valueOf(matcher.group(1));
         } else {
             key = " ";
         }
-        return this::consumeClosedDoubleQuotes;
-    }
-
-    private State consumeClosedDoubleQuotes() {
-        tryAdvance(DOUBLE_QUOTES);
         if (value == null) {
             return this::consumeColon;
         } else {
@@ -363,8 +345,10 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
 
     private State consumeValue() {
         tryAdvance(WHITESPACE);
-        if (tryAdvance(DOUBLE_QUOTES)) {
-            return this::consumeStringValue;
+        if (tryAdvance(STRING)) {
+            value = matcher.group(1);
+            addToMap();
+            return this::consumeCommaOrRightCurlyBracket;
         } else if (tryAdvance(LEFT_BRACKET)) {
             return this::consumeArray;
         } else if (tryAdvance(DECIMAL)) {
@@ -397,26 +381,15 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
         } else if (tryAdvance(BOOLEAN)) {
             array.add(Boolean.valueOf(matcher.group()));
             return this::consumeCommaOrRightBracket;
-        } else if (tryAdvance(DOUBLE_QUOTES)) {
-            return this::consumeArrayStringValue;
+        } else if (tryAdvance(STRING)) {
+            array.add(matcher.group(1));
+            return this::consumeCommaOrRightBracket;
+        } else if (tryAdvance(LEFT_BRACKET)) {
+            return this::consumeArray;
         } else {
             array.add(" ");
             return this::consumeCommaOrRightBracket;
         }
-    }
-
-    private State consumeArrayStringValue() {
-        if (tryAdvance(KEY_OR_STRING_VALUE)) {
-            array.add(matcher.group());
-        } else {
-            array.add(" ");
-        }
-        return this::consumeClosedDoubleQuotesInArray;
-    }
-
-    private State consumeClosedDoubleQuotesInArray() {
-        tryAdvance(DOUBLE_QUOTES);
-        return this::consumeCommaOrRightBracket;
     }
 
     private State consumeCommaOrRightBracket() {
@@ -426,9 +399,8 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
         }
         if (tryAdvance(RIGHT_BRACKET)) {
             value = new ArrayList<>();
-
-            for (int i = 0; i < array.size(); i++) {
-                ((ArrayList<Object>)value).add(array.get(i));
+            for (Object o : array) {
+                ((ArrayList<Object>) value).add(o);
             }
             addToMap();
             array.clear();
@@ -443,22 +415,10 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
         value = null;
     }
 
-    private State consumeStringValue() {
-        if (tryAdvance(KEY_OR_STRING_VALUE)) {
-            value = String.valueOf(matcher.group());
-        } else {
-            value = " ";
-        }
-
-        result.put(key, value);
-        key = null;
-        return this::consumeClosedDoubleQuotes;
-    }
-
     private State consumeCommaOrRightCurlyBracket() {
         tryAdvance(WHITESPACE);
         if (tryAdvance(COMMA)) {
-            return this::consumeOpenedDoubleQuotes;
+            return this::consumeKey;
         }
         if (tryAdvance(RIGHT_CURLY_BRACKET)) {
             return null;
