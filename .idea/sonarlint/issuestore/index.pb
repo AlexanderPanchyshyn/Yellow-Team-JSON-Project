@@ -7,3 +7,5 @@ b
 -src/main/java/org/yellowteam/models/Book.java,5\0\507dc7e884bf6af9d2275d102bc17b14dc296f98
 _
 /src/main/java/org/yellowteam/models/Author.java,8\5\8526aa5fe9059270ed8128448411525035cc1eaa
+p
+@src/main/java/org/yellowteam/mapper/JavaJsonMapperInterface.java,7\7\775ee052c4c0389bbadfdb8768d093b0591759d1
