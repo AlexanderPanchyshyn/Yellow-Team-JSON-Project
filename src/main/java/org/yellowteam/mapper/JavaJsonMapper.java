@@ -102,19 +102,22 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
             LEFT_BRACKET = Pattern.compile("\\["),
             RIGHT_BRACKET = Pattern.compile("]"),
             COMMA = Pattern.compile(","),
-            COLON = Pattern.compile(":"),
             STRING = Pattern.compile("\"([^\"]+)\""),
+            CHAR = Pattern.compile("\"(\\w)\""),
             BOOLEAN = Pattern.compile("true|false"),
+            NULL = Pattern.compile("null"),
             INTEGER = Pattern.compile("-?\\d+"),
-            DECIMAL = Pattern.compile("-?(0|[1-9]\\d*)\\.\\d+([eE][-+]?\\d+)?");
+            DECIMAL = Pattern.compile("-?(0|[1-9]\\d*)\\.\\d+([eE][-+]?\\d+)?"),
+            STRING_FIELD = Pattern.compile("\"([^\"]+)\"\\s*:\\s*\"([^\"]+)\""),
+            CHAR_FIELD = Pattern.compile("\"([^\"]+)\"\\s*:\\s*\"(\\w)\""),
+            BOOLEAN_FIELD = Pattern.compile("\"([^\"]+)\"\\s*:\\s*(true|false)"),
+            INTEGER_FIELD = Pattern.compile("\"([^\"]+)\"\\s*:\\s*(-?\\d+)"),
+            DECIMAL_FIELD = Pattern.compile("\"([^\"]+)\"\\s*:\\s*(-?(0|[1-9]\\d*)\\.\\d+([eE][-+]?\\d+)?)");
 
     private final String json;
     private final Map<String, Object> result = new LinkedHashMap<>();
     private final Matcher matcher;
     private int cursor = 0;
-    private String key = null;
-    private Object value = null;
-
     private List<Object> array = new ArrayList<>();
 
     public JavaJsonMapper(String json) {
@@ -145,86 +148,87 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
 
     private State start() {
         tryAdvance(WHITESPACE);
-        return this::consumeLeftCurlyBracket;
+        return this::consumeJson;
     }
 
-    private State consumeLeftCurlyBracket() {
-        if (tryAdvance(LEFT_CURLY_BRACKET)) {
-            return this::consumeKey;
-        }
-        throw new IllegalStateException("Expecting '{'");
-    }
-
-    private State consumeKey() {
-        if (tryAdvance(STRING)) {
-            key = String.valueOf(matcher.group(1));
-        } else {
-            key = " ";
-        }
-        if (value == null) {
-            return this::consumeColon;
-        } else {
-            value = null;
-            return this::consumeCommaOrRightCurlyBracket;
-        }
-    }
-
-    private State consumeColon() {
-        tryAdvance(WHITESPACE);
-        if (tryAdvance(COLON)) {
-            return this::consumeValue;
-        }
-        throw new IllegalStateException("Expecting ':'");
-    }
-
-    private State consumeValue() {
-        tryAdvance(WHITESPACE);
-        if (tryAdvance(STRING)) {
-            value = matcher.group(1);
-            addToMap();
-            return this::consumeCommaOrRightCurlyBracket;
+    private State consumeJson() {
+        if (tryAdvance(NULL)) {
+            result.put("null", "null");
+            return null;
+        } else if (tryAdvance(LEFT_CURLY_BRACKET)) {
+            return this::consumeField;
         } else if (tryAdvance(LEFT_BRACKET)) {
             return this::consumeArray;
-        } else if (tryAdvance(DECIMAL)) {
-            value = Double.valueOf(matcher.group());
-            addToMap();
-            return this::consumeCommaOrRightCurlyBracket;
-        } else if (tryAdvance(INTEGER)) {
-            value = Integer.valueOf(matcher.group());
-            addToMap();
-            return this::consumeCommaOrRightCurlyBracket;
-        } else if (tryAdvance(BOOLEAN)) {
-            value = Boolean.valueOf(matcher.group());
-            addToMap();
-            return this::consumeCommaOrRightCurlyBracket;
         } else {
-            value = " ";
-            addToMap();
-            return this::consumeCommaOrRightCurlyBracket;
+            return this::consumePrimitive;
         }
+    }
+
+    private State consumePrimitive() {
+        String key = "Primitive value";
+        if (tryAdvance(CHAR)) {
+
+            result.put(key, matcher.group(1).charAt(0));
+            return null;
+
+        } else if (tryAdvance(STRING)) {
+
+            result.put(key, matcher.group(1));
+            return null;
+
+        } else if (tryAdvance(DECIMAL)) {
+
+            result.put(key, Double.valueOf(matcher.group()));
+            return null;
+
+        } else if (tryAdvance(INTEGER)) {
+
+            result.put(key, Integer.valueOf(matcher.group()));
+            return null;
+
+        } else if (tryAdvance(BOOLEAN)) {
+
+            result.put(key, Boolean.valueOf(matcher.group()));
+            return null;
+
+        }
+        throw new IllegalStateException("Incorrect data type!");
     }
 
     private State consumeArray() {
         tryAdvance(WHITESPACE);
         if (tryAdvance(DECIMAL)) {
+
             array.add(Double.valueOf(matcher.group()));
             return this::consumeCommaOrRightBracket;
+
         } else if (tryAdvance(INTEGER)) {
+
             array.add(Integer.valueOf(matcher.group()));
             return this::consumeCommaOrRightBracket;
+
         } else if (tryAdvance(BOOLEAN)) {
+
             array.add(Boolean.valueOf(matcher.group()));
             return this::consumeCommaOrRightBracket;
+
+        } else if (tryAdvance(CHAR)) {
+
+            array.add(matcher.group(1).charAt(0));
+            return this::consumeCommaOrRightBracket;
+
         } else if (tryAdvance(STRING)) {
+
             array.add(matcher.group(1));
             return this::consumeCommaOrRightBracket;
-        } else if (tryAdvance(LEFT_BRACKET)) {
+
+        } else if (tryAdvance(LEFT_BRACKET)) {  //not working
+
             array.add(new ArrayList<>());
             return this::consumeArray;
-        } else {
-            array.add(" ");
-            return this::consumeCommaOrRightBracket;
+
         }
+        throw new IllegalStateException("Incorrect data type!");
     }
 
     private State consumeCommaOrRightBracket() {
@@ -233,27 +237,52 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
             return this::consumeArray;
         }
         if (tryAdvance(RIGHT_BRACKET)) {
-            value = new ArrayList<>();
-            for (Object o : array) {
-                ((ArrayList<Object>) value).add(o);
-            }
-            addToMap();
-            array.clear();
-            return consumeCommaOrRightCurlyBracket();
+//            value = new ArrayList<>();
+//            for (Object o : array) {
+//                ((ArrayList<Object>) value).add(o);
+//            }
+//            addToMap();
+//            array.clear();
+            result.put("array", array);
+            return null;
         }
         throw new IllegalStateException("Expecting ',' or ']'");
     }
 
-    private void addToMap() {
-        result.put(key, value);
-        key = null;
-        value = null;
+    private State consumeField() {
+        if (tryAdvance(CHAR_FIELD)){
+
+            result.put(matcher.group(1), matcher.group(2).charAt(0));
+            return this::consumeCommaOrRightCurlyBracket;
+
+        } else if (tryAdvance(STRING_FIELD)) {
+
+            result.put(matcher.group(1), matcher.group(2));
+            return this::consumeCommaOrRightCurlyBracket;
+
+        } else if (tryAdvance(DECIMAL_FIELD)) {
+
+            result.put(matcher.group(1), Double.valueOf(matcher.group(2)));
+            return this::consumeCommaOrRightCurlyBracket;
+
+        } else if (tryAdvance(INTEGER_FIELD)) {
+
+            result.put(matcher.group(1), Integer.valueOf(matcher.group(2)));
+            return this::consumeCommaOrRightCurlyBracket;
+
+        } else if (tryAdvance(BOOLEAN_FIELD)) {
+
+            result.put(matcher.group(1), Boolean.valueOf(matcher.group(2)));
+            return this::consumeCommaOrRightCurlyBracket;
+
+        }
+        throw new IllegalStateException("Incorrect value data type!");
     }
 
     private State consumeCommaOrRightCurlyBracket() {
         tryAdvance(WHITESPACE);
         if (tryAdvance(COMMA)) {
-            return this::consumeKey;
+            return this::consumeField;
         }
         if (tryAdvance(RIGHT_CURLY_BRACKET)) {
             return null;
