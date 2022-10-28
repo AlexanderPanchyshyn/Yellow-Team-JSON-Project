@@ -7,244 +7,78 @@ import java.util.function.IntConsumer;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 public class JavaJsonMapper implements JavaJsonMapperInterface {
 
+    private static final Class<?>[] VALUE_TYPES = new Class[] {Number.class, String.class, Character.class, Boolean.class};
+    private static final Class<?>[] QUOTATION_VALUES = new Class[] {String.class, Character.class};
+    private static final Class<?>[] NOT_QUOTATION_VALUES = new Class[] {Boolean.class, Number.class};
+
     @Override
-    public String toJson(Object o) throws IllegalAccessException {
-        String json = "{";
-
-        //Creating a list, where would be saved all fields and values of incoming object
-        List<String> list = new ArrayList<>();
-
-        //Converting to Json all fields of object and saving it to main list
-        convertToJson(o, list);
-
-        //Formatting all incoming list values to proper Json way
-        json = collectValues(json, list);
-
-        return json;
+    public String toJson(Object o) {
+        return parseJson(o);
     }
 
-    private void convertToJson(Object object, List<String> list) throws IllegalAccessException {
-        var objFields = object.getClass().getDeclaredFields();
-
-        // Checking what type of field values object has and invoking needed methods
-        for (var field : objFields) {
-            field.setAccessible(true);
-            String objName = field.getName();
-            var objValue = field.get(object);
-
-            if (objValue instanceof String ||
-                    objValue instanceof Character ||
-                    objValue instanceof Number ||
-                    objValue instanceof Boolean) {
-
-                convertPrimitiveToJson(objName, objValue, list);
-
-            } else if (objValue instanceof LocalDateTime || objValue instanceof LocalDate) {
-                convertDateToJson(objName, objValue, list);
-            } else if (objValue instanceof List<?> fieldList) {
-
-                convertArrayToJson(objName, fieldList, list);
-
-            } else {
-
-                convertObjectToJson(objName, objValue, list);
-
-            }
-        }
-    }
-
-    private void convertDateToJson(String objName, Object objValue, List<String> list) {
-        list.add("\"%s\":\"%s\"".formatted(objName, objValue.toString()));
-    }
-
-    private String convertDateValueToJson(Object element) {
-        return "\"%s\"".formatted(element.toString());
-    }
-
-
-    private void convertObjectToJson(String objName, Object obj, List<String> list) throws IllegalAccessException {
-        int namePos = 0;
-        int amountOfObjFields = obj.getClass().getDeclaredFields().length;
-        String objValues = "";
-
-        list.add("\"%s\":{".formatted(objName));
-        convertToJson(obj, list);
-        list.add("}");
-
-        // FORMATTING ALL VALUES IN PROPER JSON WAY
-        // Finding the position of a name in a list
-        for (int i = 0; i < list.size(); i++) {
-            if (Objects.equals(list.get(i), "\"%s\":{".formatted(objName))) {
-                namePos = i;
-            }
-        }
-
-        // Creating values list from all object fields and deleting them from main list
-        for (int i = 0; i < amountOfObjFields; i++) {
-            var pos = i == amountOfObjFields - 1 ? "" : ",";
-
-            objValues += list.get(namePos + 1) + pos;
-            list.remove(namePos + 1);
-        }
-
-        // Changing name item in main list to one common item - name:{ + values + }
-        list.set(namePos, list.get(namePos) + objValues + list.get(namePos + 1));
-        list.remove(namePos + 1);
-    }
-
-    private void convertArrayToJson(String objName, List<?> fieldList, List<String> list) throws IllegalAccessException {
-        String value = "";
-
-        for (int i = 0; i < fieldList.size(); i++) {
-            var objValue = fieldList.get(i);
-            var itemPos = i == fieldList.size() - 1 ? "" : ",";
-
-            value = typeChecker(objValue, value, itemPos);
-        }
-
-        list.add("\"%s\":[%s]".formatted(objName, value));
-    }
-
-    private void convertPrimitiveToJson(String objName, Object obj, List<String> list) {
-        if (obj instanceof Number || obj instanceof Boolean) {
-            list.add("\"%s\":%s".formatted(objName, String.valueOf(obj)));
+    private String parseJson(Object object) {
+        if (Objects.isNull(object)) {
+            return "null";
+        } else if (Iterable.class.isAssignableFrom(object.getClass())) {
+            return parseArray((Iterable<?>) object);
+        } else if (object.getClass().isArray()) {
+            return parseArray(Arrays.stream(((Object[])object)).toList());
+        } else if (isTypeInArray(object.getClass(), VALUE_TYPES)) {
+            return parseValues(object);
+        } else if (object instanceof LocalDateTime || object instanceof LocalDate) {
+            return parseLocalDate(object);
         } else {
-            list.add("\"%s\":\"%s\"".formatted(objName, String.valueOf(obj)));
+            return parseObject(object);
         }
     }
 
-    private String convertPrimitiveValueToJson(Object element) {
-        if (element instanceof Number || element instanceof Boolean) {
-            return "%s".formatted(String.valueOf(element));
+    private String parseLocalDate(Object object) {
+        return "\"%s\"".formatted(object.toString());
+    }
+
+    private <T> String parseArray(Iterable<T> array) {
+        return "[" +
+                StreamSupport.stream(array.spliterator(), false)
+                        .map(this::parseJson)
+                        .collect(Collectors.joining(",")) +
+                "]";
+    }
+
+    private String parseObject(Object object) {
+        return "{" +
+                Arrays.stream(object.getClass().getDeclaredFields())
+                        .map(field -> {
+                            field.setAccessible(true);
+                            return field;
+                        }).map(field -> {
+                            try {
+                                return "\"" + field.getName() + "\":" + parseJson(field.get(object));
+                            } catch (ReflectiveOperationException roe) {
+                                throw new RuntimeException(roe);
+                            }
+                        }).collect(Collectors.joining(",")) +
+                "}";
+    }
+
+    private String parseValues(Object value) {
+        if (isTypeInArray(value.getClass(), QUOTATION_VALUES)) {
+            return "\"" + value + "\"";
+        } else if (isTypeInArray(value.getClass(), NOT_QUOTATION_VALUES)) {
+            return String.valueOf(value);
+        } else if (value instanceof LocalDateTime || value instanceof LocalDate) {
+            return parseLocalDate(value);
         } else {
-            return "\"%s\"".formatted(String.valueOf(element));
+            throw new RuntimeException("Invalid object parsed as value type: %s".formatted(value.getClass()));
         }
     }
 
-    private String typeChecker(Object objValue, String value, String itemPos) throws IllegalAccessException {
-        if (objValue instanceof String ||
-                objValue instanceof Character ||
-                objValue instanceof Number ||
-                objValue instanceof Boolean) {
-
-            value += convertPrimitiveValueToJson(objValue) + itemPos;
-        } else if (objValue instanceof LocalDate || objValue instanceof LocalDateTime || objValue instanceof Date) {
-            value += convertDateValueToJson(objValue) + itemPos;
-        } else {
-            value += toJson(objValue) + itemPos;
-        }
-        return value;
-    }
-
-    private String collectValues(String json, List<String> list) {
-        for (int i = 0; i < list.size(); i++) {
-            var itemPos = i == list.size() - 1 ? "" : ",";
-            json += list.get(i) + itemPos;
-        }
-        return json + "}";
-    }
-
-    public String prettifyJsonToReadableView(String uglyJsonString, int spaceValue) {
-        StringBuilder jsonPrettifyBuilder = new StringBuilder();
-        consume = ch -> jsonPrettifyBuilder.append((char) ch);
-        state = starterBlock;
-        tabulation = 0;
-        spaces = spaceValue;
-        uglyJsonString.codePoints().forEach(ch -> state.accept(ch));
-        return jsonPrettifyBuilder.toString();
-    }
-
-    IntConsumer
-            consume;
-    int spaces;
-    int tabulation;
-    IntConsumer state;
-    IntConsumer starterBlock = ch -> {
-        if (ch == '{') {
-            processAndIncreasingTabulation(ch);
-            this.state = this.objectBlock;
-        } else if (ch == '[') {
-            processAndIncreasingTabulation(ch);
-            this.state = this.arrayBlock;
-        } else if (ch == ',') {
-            processAndAddingTabulation(ch);
-        } else if (ch == ']') {
-            processAndDecreasingTabulation(ch);
-        } else if (ch == '}') {
-            processAndDecreasingTabulation(ch);
-        } else if (ch == '"') {
-            consume.accept(ch);
-            this.state = this.innerStringBlock;
-        } else if (ch == ':') {
-            consume.accept(ch);
-            consume.accept(' ');
-        } else {
-            consume.accept(ch);
-        }
-    };
-    IntConsumer objectBlock = ch -> {
-        if (ch == '[') {
-            processAndIncreasingTabulation(ch);
-            this.state = this.arrayBlock;
-        } else if (ch == '"') {
-            consume.accept(ch);
-            this.state = this.innerStringBlock;
-        } else if (ch == '{') {
-            processAndIncreasingTabulation(ch);
-            this.state = this.starterBlock;
-        }
-    };
-    IntConsumer arrayBlock = ch -> {
-        if (ch == '{') {
-            processAndIncreasingTabulation(ch);
-            this.state = this.objectBlock;
-        } else if (ch == '"') {
-            consume.accept(ch);
-            this.state = this.innerStringBlock;
-        }
-    };
-    IntConsumer innerStringBlock = ch -> {
-        if (ch == '\\') {
-            this.state = this.escapeBlock;
-        } else if (ch == '"') {
-            consume.accept(ch);
-            this.state = this.starterBlock;
-        } else {
-            consume.accept(ch);
-        }
-    };
-    IntConsumer escapeBlock = ch -> {
-        if ("\"\\/bfnrt".indexOf((char) ch) != -1) {
-            consume.accept(ch);
-            this.state = this.innerStringBlock;
-        } else {
-            throw new IllegalArgumentException("Unknown state escape: \\" + (char) ch);
-        }
-    };
-
-    private void processAndAddingTabulation(int ch) {
-        consume.accept(ch);
-        consume.accept('\n');
-        for (int i = 0; i < tabulation; i++) {
-            consume.accept(' ');
-        }
-    }
-
-    private void processAndIncreasingTabulation(int ch) {
-        tabulation += spaces;
-        processAndAddingTabulation(ch);
-    }
-
-    private void processAndDecreasingTabulation(int ch) {
-        consume.accept('\n');
-        tabulation -= spaces;
-        for (int i = 0; i < tabulation; i++) {
-            consume.accept(' ');
-        }
-        consume.accept(ch);
+    private boolean isTypeInArray(Class<?> mainType, Class<?>[] arrayOfTypes) {
+        return Arrays.stream(arrayOfTypes).anyMatch(t -> t.isAssignableFrom(mainType));
     }
 
     @Override
@@ -385,6 +219,7 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
             array.add(matcher.group(1));
             return this::consumeCommaOrRightBracket;
         } else if (tryAdvance(LEFT_BRACKET)) {
+            array.add(new ArrayList<>());
             return this::consumeArray;
         } else {
             array.add(" ");
