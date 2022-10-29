@@ -44,7 +44,7 @@ public class DateJsonFormatter {
         try {
             return dateStringWithFormatter(objectValue);
         } catch (Exception e) {
-            return "Error";
+            return "Wrong Pattern";
         }
     }
 
