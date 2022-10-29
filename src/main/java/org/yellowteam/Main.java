@@ -28,7 +28,7 @@ public class Main {
         Parser parser= new Parser();
         List<LocalDateModel> dateModels = parser.parse(author);
         System.out.println(dateModels);
-        String newString = String.valueOf(dateModels.get(0).getClass().getSimpleName());
+        String newString = String.valueOf(dateModels.get(0).getOriginalText());
         Locale.setDefault(Locale.FRANCE);
         LocalDate localDateTime = LocalDate.parse(newString, DateTimeFormatter.ofPattern(dateModels.get(0).getConDateFormat(),Locale.US));
         System.out.println(localDateTime);
