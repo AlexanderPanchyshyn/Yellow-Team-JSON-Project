@@ -3,7 +3,6 @@ package org.yellowteam.mapper;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.function.IntConsumer;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -12,9 +11,9 @@ import java.util.stream.StreamSupport;
 
 public class JavaJsonMapper implements JavaJsonMapperInterface {
 
-    private static final Class<?>[] VALUE_TYPES = new Class[] {Number.class, String.class, Character.class, Boolean.class};
-    private static final Class<?>[] QUOTATION_VALUES = new Class[] {String.class, Character.class};
-    private static final Class<?>[] NOT_QUOTATION_VALUES = new Class[] {Boolean.class, Number.class};
+    private static final Class<?>[] VALUE_TYPES = new Class[]{Number.class, String.class, Character.class, Boolean.class};
+    private static final Class<?>[] QUOTATION_VALUES = new Class[]{String.class, Character.class};
+    private static final Class<?>[] NOT_QUOTATION_VALUES = new Class[]{Boolean.class, Number.class};
 
     @Override
     public String toJson(Object o) {
@@ -27,17 +26,17 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
         } else if (Iterable.class.isAssignableFrom(object.getClass())) {
             return parseArray((Iterable<?>) object);
         } else if (object.getClass().isArray()) {
-            return parseArray(Arrays.stream(((Object[])object)).toList());
+            return parseArray(Arrays.stream(((Object[]) object)).toList());
         } else if (isTypeInArray(object.getClass(), VALUE_TYPES)) {
             return parseValues(object);
         } else if (object instanceof LocalDateTime || object instanceof LocalDate) {
-            return parseLocalDate(object);
+            return writeLocalDateToJson(object);
         } else {
             return parseObject(object);
         }
     }
 
-    private String parseLocalDate(Object object) {
+    private String writeLocalDateToJson(Object object) {
         return "\"%s\"".formatted(object.toString());
     }
 
@@ -52,10 +51,7 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
     private String parseObject(Object object) {
         return "{" +
                 Arrays.stream(object.getClass().getDeclaredFields())
-                        .map(field -> {
-                            field.setAccessible(true);
-                            return field;
-                        }).map(field -> {
+                        .peek(field -> field.setAccessible(true)).map(field -> {
                             try {
                                 return "\"" + field.getName() + "\":" + parseJson(field.get(object));
                             } catch (ReflectiveOperationException roe) {
@@ -71,7 +67,7 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
         } else if (isTypeInArray(value.getClass(), NOT_QUOTATION_VALUES)) {
             return String.valueOf(value);
         } else if (value instanceof LocalDateTime || value instanceof LocalDate) {
-            return parseLocalDate(value);
+            return writeLocalDateToJson(value);
         } else {
             throw new RuntimeException("Invalid object parsed as value type: %s".formatted(value.getClass()));
         }
@@ -86,7 +82,7 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
         return parse(json);
     }
 
-    public JavaJsonMapper () {
+    public JavaJsonMapper() {
         this.json = "";
         matcher = null;
     }
@@ -118,7 +114,7 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
     private final Map<String, Object> result = new LinkedHashMap<>();
     private final Matcher matcher;
     private int cursor = 0;
-    private List<Object> array = new ArrayList<>();
+    private final List<Object> array = new ArrayList<>();
 
     public JavaJsonMapper(String json) {
         this.json = json;
@@ -250,7 +246,7 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
     }
 
     private State consumeField() {
-        if (tryAdvance(CHAR_FIELD)){
+        if (tryAdvance(CHAR_FIELD)) {
 
             result.put(matcher.group(1), matcher.group(2).charAt(0));
             return this::consumeCommaOrRightCurlyBracket;
@@ -288,5 +284,9 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
             return null;
         }
         throw new IllegalStateException("Expecting ',' or '}'");
+    }
+
+    public String prettifyJson(String jsonFile, int indentLevel) {
+        return new JsonPrettifier().prettifyJsonToReadableView(jsonFile, indentLevel);
     }
 }
