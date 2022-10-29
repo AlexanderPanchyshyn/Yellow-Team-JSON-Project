@@ -28,12 +28,12 @@ public class Main {
         Parser parser= new Parser();
         List<LocalDateModel> dateModels = parser.parse(author);
         System.out.println(dateModels);
-        String newString = String.valueOf(dateModels.get(0).getDateTimeString());
+        String newString = String.valueOf(dateModels.get(0).getClass().getSimpleName());
         Locale.setDefault(Locale.FRANCE);
         LocalDate localDateTime = LocalDate.parse(newString, DateTimeFormatter.ofPattern(dateModels.get(0).getConDateFormat(),Locale.US));
         System.out.println(localDateTime);
-        System.out.println(localDateTime.format(formatter));
-        author = author.substring(0,dateModels.get(0).getStart()-1) + localDateTime.format(formatter) + author.substring(dateModels.get(0).getEnd());
+        System.out.println(localDateTime.format(DateTimeFormatter.ofPattern("yyyy-dd-MM")));
+        author = author.substring(0,dateModels.get(0).getStart()-1) + localDateTime.format(DateTimeFormatter.ofPattern("yyyy-dd-MM")) + author.substring(dateModels.get(0).getEnd());
         System.out.println(author);
     }
 }

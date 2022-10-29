@@ -17,6 +17,7 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
     String prevDatePattern;
     String currDatePattern="dd-MM-yyyy";
     DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(currDatePattern);
+    DateJsonFormatter dateFormatter;
     @Override
     public String toJson(Object o) throws IllegalAccessException {
         String json = "{";
@@ -67,15 +68,15 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
         list.add("\"%s\":\"%s\"".formatted(objName, dateFormatter(objValue)));
     }
     private String dateFormatter(Object objValue){
-        if(objValue instanceof LocalDate localDate){
-            return localDate.format(dateTimeFormatter);
+        if(objValue instanceof LocalDate ){
+            return ((LocalDate) objValue).format(dateTimeFormatter);
         }
-        if(objValue instanceof  LocalDateTime localDateTime){
-             return localDateTime.format(dateTimeFormatter);
+        if(objValue instanceof  LocalDateTime){
+             return ((LocalDateTime) objValue).format(dateTimeFormatter);
         }
-        if(objValue instanceof Date date){
+        if(objValue instanceof Date ){
             SimpleDateFormat formatter = new SimpleDateFormat(currDatePattern);
-           return formatter.format(date);
+           return formatter.format(objValue);
         }
         return objValue.toString();
     }
