@@ -3,7 +3,6 @@ package org.yellowteam.mapper;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.function.IntConsumer;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -12,9 +11,9 @@ import java.util.stream.StreamSupport;
 
 public class JavaJsonMapper implements JavaJsonMapperInterface {
 
-    private static final Class<?>[] VALUE_TYPES = new Class[] {Number.class, String.class, Character.class, Boolean.class};
-    private static final Class<?>[] QUOTATION_VALUES = new Class[] {String.class, Character.class};
-    private static final Class<?>[] NOT_QUOTATION_VALUES = new Class[] {Boolean.class, Number.class};
+    private static final Class<?>[] VALUE_TYPES = new Class[]{Number.class, String.class, Character.class, Boolean.class};
+    private static final Class<?>[] QUOTATION_VALUES = new Class[]{String.class, Character.class};
+    private static final Class<?>[] NOT_QUOTATION_VALUES = new Class[]{Boolean.class, Number.class};
 
     @Override
     public String toJson(Object o) {
@@ -27,17 +26,17 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
         } else if (Iterable.class.isAssignableFrom(object.getClass())) {
             return parseArray((Iterable<?>) object);
         } else if (object.getClass().isArray()) {
-            return parseArray(Arrays.stream(((Object[])object)).toList());
+            return parseArray(Arrays.stream(((Object[]) object)).toList());
         } else if (isTypeInArray(object.getClass(), VALUE_TYPES)) {
             return parseValues(object);
         } else if (object instanceof LocalDateTime || object instanceof LocalDate) {
-            return parseLocalDate(object);
+            return writeLocalDateToJson(object);
         } else {
             return parseObject(object);
         }
     }
 
-    private String parseLocalDate(Object object) {
+    private String writeLocalDateToJson(Object object) {
         return "\"%s\"".formatted(object.toString());
     }
 
@@ -52,10 +51,7 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
     private String parseObject(Object object) {
         return "{" +
                 Arrays.stream(object.getClass().getDeclaredFields())
-                        .map(field -> {
-                            field.setAccessible(true);
-                            return field;
-                        }).map(field -> {
+                        .peek(field -> field.setAccessible(true)).map(field -> {
                             try {
                                 return "\"" + field.getName() + "\":" + parseJson(field.get(object));
                             } catch (ReflectiveOperationException roe) {
@@ -71,7 +67,7 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
         } else if (isTypeInArray(value.getClass(), NOT_QUOTATION_VALUES)) {
             return String.valueOf(value);
         } else if (value instanceof LocalDateTime || value instanceof LocalDate) {
-            return parseLocalDate(value);
+            return writeLocalDateToJson(value);
         } else {
             throw new RuntimeException("Invalid object parsed as value type: %s".formatted(value.getClass()));
         }
@@ -86,7 +82,7 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
         return parse(json);
     }
 
-    public JavaJsonMapper () {
+    public JavaJsonMapper() {
         this.json = "";
         matcher = null;
     }
@@ -112,13 +108,18 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
             CHAR_FIELD = Pattern.compile("\"([^\"]+)\"\\s*:\\s*\"(\\w)\""),
             BOOLEAN_FIELD = Pattern.compile("\"([^\"]+)\"\\s*:\\s*(true|false)"),
             INTEGER_FIELD = Pattern.compile("\"([^\"]+)\"\\s*:\\s*(-?\\d+)"),
-            DECIMAL_FIELD = Pattern.compile("\"([^\"]+)\"\\s*:\\s*(-?(0|[1-9]\\d*)\\.\\d+([eE][-+]?\\d+)?)");
+            DECIMAL_FIELD = Pattern.compile("\"([^\"]+)\"\\s*:\\s*(-?(0|[1-9]\\d*)\\.\\d+([eE][-+]?\\d+)?)"),
+            LOCAL_DATE = Pattern.compile("(\\d{4})-(\\d{2})-(\\d{2})"),
+            LOCAL_DATE_TIME = Pattern.compile("(\\d{4})-(\\d{2})-(\\d{2})T(\\d{2}):(\\d{2})"),
+            LOCAL_DATE_FIELD = Pattern.compile("\"([^\"]+)\"\\s*:(\\d{4})-(\\d{2})-(\\d{2})"),
+            LOCAL_DATE_TIME_FIELD = Pattern.compile("\"([^\"]+)\"\\s*:(\\d{4})-(\\d{2})-(\\d{2})T(\\d{2}):(\\d{2})");
+
 
     private final String json;
     private final Map<String, Object> result = new LinkedHashMap<>();
     private final Matcher matcher;
     private int cursor = 0;
-    private List<Object> array = new ArrayList<>();
+    private final List<Object> array = new ArrayList<>();
 
     public JavaJsonMapper(String json) {
         this.json = json;
@@ -169,6 +170,23 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
         if (tryAdvance(CHAR)) {
 
             result.put(key, matcher.group(1).charAt(0));
+            return null;
+
+        } else if (tryAdvance(LOCAL_DATE_TIME)) {
+
+            result.put(key, LocalDateTime.of(Integer.parseInt(matcher.group(1)),
+                    Integer.parseInt(matcher.group(2)),
+                    Integer.parseInt(matcher.group(3)),
+                    Integer.parseInt(matcher.group(4)),
+                    Integer.parseInt(matcher.group(5))));
+            return null;
+
+        } else if (tryAdvance(LOCAL_DATE)) {
+
+            result.put(key, LocalDate.of(
+                    Integer.parseInt(matcher.group(1)),
+                    Integer.parseInt(matcher.group(2)),
+                    Integer.parseInt(matcher.group(3))));
             return null;
 
         } else if (tryAdvance(STRING)) {
@@ -250,9 +268,28 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
     }
 
     private State consumeField() {
-        if (tryAdvance(CHAR_FIELD)){
+        if (tryAdvance(CHAR_FIELD)) {
 
             result.put(matcher.group(1), matcher.group(2).charAt(0));
+            return this::consumeCommaOrRightCurlyBracket;
+
+        } else if (tryAdvance(LOCAL_DATE_TIME_FIELD)) {
+
+            result.put(matcher.group(1), LocalDateTime.of(
+                    Integer.parseInt(matcher.group(2)),
+                    Integer.parseInt(matcher.group(3)),
+                    Integer.parseInt(matcher.group(4)),
+                    Integer.parseInt(matcher.group(5)),
+                    Integer.parseInt(matcher.group(6))));
+            return this::consumeCommaOrRightCurlyBracket;
+
+        } else if (tryAdvance(LOCAL_DATE_FIELD)) {
+
+            result.put(matcher.group(1), LocalDate.of(
+                    Integer.parseInt(matcher.group(2)),
+                    Integer.parseInt(matcher.group(3)),
+                    Integer.parseInt(matcher.group(4)))
+            );
             return this::consumeCommaOrRightCurlyBracket;
 
         } else if (tryAdvance(STRING_FIELD)) {
@@ -288,5 +325,9 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
             return null;
         }
         throw new IllegalStateException("Expecting ',' or '}'");
+    }
+
+    public String prettifyJson(String jsonFile, int indentLevel) {
+        return new JsonPrettifier().prettifyJsonToReadableView(jsonFile, indentLevel);
     }
 }

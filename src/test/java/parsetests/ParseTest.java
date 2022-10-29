@@ -4,6 +4,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.yellowteam.mapper.JavaJsonMapper;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -20,6 +22,8 @@ class ParseTest {
         String json3 = "25";
         String json4 = "25.65";
         String json5 = "true";
+        String json6 = "1953-10-20";
+        String json7 = "2020-09-10T08:01";
 
         var obj = mapper.mapFromJson(json);
         var obj1 = mapper.mapFromJson(json1);
@@ -27,6 +31,8 @@ class ParseTest {
         var obj3 = mapper.mapFromJson(json3);
         var obj4 = mapper.mapFromJson(json4);
         var obj5 = mapper.mapFromJson(json5);
+        var obj6 = mapper.mapFromJson(json6);
+        var obj7 = mapper.mapFromJson(json7);
 
         assertThat(obj).isEqualTo(Map.of("null", "null"));
         assertThat(obj1).isEqualTo(Map.of("Primitive value", 'A'));
@@ -34,6 +40,8 @@ class ParseTest {
         assertThat(obj3).isEqualTo(Map.of("Primitive value", 25));
         assertThat(obj4).isEqualTo(Map.of("Primitive value", 25.65));
         assertThat(obj5).isEqualTo(Map.of("Primitive value", true));
+        assertThat(obj6).isEqualTo(Map.of("Primitive value", LocalDate.of(1953, 10, 20)));
+        assertThat(obj7).isEqualTo(Map.of("Primitive value", LocalDateTime.parse(json7)));
     }
 
     @Test
