@@ -41,7 +41,7 @@ class ParseTest {
         assertThat(obj4).isEqualTo(Map.of("Primitive value", 25.65));
         assertThat(obj5).isEqualTo(Map.of("Primitive value", true));
         assertThat(obj6).isEqualTo(Map.of("Primitive value", LocalDate.of(1953, 10, 20)));
-        assertThat(obj7).isEqualTo(Map.of("Primitive value", LocalDateTime.of(2020,9,10,8,1)));
+        assertThat(obj7).isEqualTo(Map.of("Primitive value", LocalDateTime.of(2020, 9, 10, 8, 1)));
     }
 
     @Test
@@ -52,19 +52,19 @@ class ParseTest {
         var obj = mapper.mapFromJson(json);
 
         assertThat(obj).isEqualTo(Map.of("array", Arrays.asList(false, 65.3, "word",
-                LocalDate.of(1953, 10, 20), LocalDateTime.of(2020,9,10,8,1))));
+                LocalDate.of(1953, 10, 20), LocalDateTime.of(2020, 9, 10, 8, 1))));
     }
 
     @Test
     @DisplayName("Parsing to String Object")
     void toStringObject() {
-        String json = "{\"name\":\"Nick\",\"surName\":\"Johnson\",\"dateOfBirth\":\"1953-10-20\"," +
-                "\"dateOfCreation\":\"2020-09-10T08:01\"}";
+        String json = "{\"name\":\"Nick\",\"surName\":\"Johnson\",\"DateOfBirth\":\"1953-10-20\", \"DateOfCreation\":\"2020-09-10T08:01\"}";
 
         var obj = mapper.mapFromJson(json);
 
         assertThat(obj).isEqualTo(Map.of("name", "Nick", "surName", "Johnson",
-                "dateOfBirth","1953-10-20","dateOfCreation","2020-09-10T08:01"));
+                "DateOfBirth", LocalDate.of(1953,10,20), "DateOfCreation",
+                LocalDateTime.of(2020,9,10,8,1)));
     }
 
     @Test
