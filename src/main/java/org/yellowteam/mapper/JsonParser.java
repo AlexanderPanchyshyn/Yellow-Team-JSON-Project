@@ -29,10 +29,10 @@ class JsonParser {
             BOOLEAN_FIELD = Pattern.compile("\"([^\"]+)\"\\s*:\\s*(true|false)"),
             INTEGER_FIELD = Pattern.compile("\"([^\"]+)\"\\s*:\\s*(-?\\d+)"),
             DECIMAL_FIELD = Pattern.compile("\"([^\"]+)\"\\s*:\\s*(-?(0|[1-9]\\d*)\\.\\d+([eE][-+]?\\d+)?)"),
-            LOCAL_DATE = Pattern.compile("(\\d{4})-(\\d{2})-(\\d{2})"),
-            LOCAL_DATE_TIME = Pattern.compile("(\\d{4})-(\\d{2})-(\\d{2})T(\\d{2}):(\\d{2})"),
-            LOCAL_DATE_FIELD = Pattern.compile("\"([^\"]+)\"\\s*:(\\d{4})-(\\d{2})-(\\d{2})"),
-            LOCAL_DATE_TIME_FIELD = Pattern.compile("\"([^\"]+)\"\\s*:(\\d{4})-(\\d{2})-(\\d{2})T(\\d{2}):(\\d{2})"),
+            LOCAL_DATE = Pattern.compile("\"(\\d{4})-(\\d{2})-(\\d{2})\""),
+            LOCAL_DATE_TIME = Pattern.compile("\"(\\d{4})-(\\d{2})-(\\d{2})T(\\d{2}):(\\d{2})\""),
+            LOCAL_DATE_FIELD = Pattern.compile("\"([^\"]+)\"\\s*:\"(\\d{4})-(\\d{2})-(\\d{2})\""),
+            LOCAL_DATE_TIME_FIELD = Pattern.compile("\"([^\"]+)\"\\s*:\"(\\d{4})-(\\d{2})-(\\d{2})T(\\d{2}):(\\d{2})\""),
             ARRAY_FIELD = Pattern.compile("\"([^\"]+)\"\\s*:\\s*\\["),
             OBJECT_FIELD = Pattern.compile("\"([^\"]+)\"\\s*:\\s*\\{");
 
@@ -51,6 +51,7 @@ class JsonParser {
     private static void setInnerCursor(int cursor) {
         JsonParser.innerCursor = cursor;
     }
+
     JsonParser(String json) {
         this.json = json;
         matcher = WHITESPACE.matcher(json);
@@ -145,6 +146,22 @@ class JsonParser {
         if (tryAdvance(DECIMAL)) {
 
             array.add(Double.valueOf(matcher.group()));
+
+        } else if (tryAdvance(LOCAL_DATE_TIME)) {
+
+            array.add(LocalDateTime.of(
+                    Integer.parseInt(matcher.group(1)),
+                    Integer.parseInt(matcher.group(2)),
+                    Integer.parseInt(matcher.group(3)),
+                    Integer.parseInt(matcher.group(4)),
+                    Integer.parseInt(matcher.group(5))));
+
+        } else if (tryAdvance(LOCAL_DATE)) {
+
+            array.add(LocalDate.of(
+                    Integer.parseInt(matcher.group(1)),
+                    Integer.parseInt(matcher.group(2)),
+                    Integer.parseInt(matcher.group(3))));
 
         } else if (tryAdvance(INTEGER)) {
 
