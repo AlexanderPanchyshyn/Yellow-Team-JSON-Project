@@ -22,8 +22,8 @@ class ParseTest {
         String json3 = "25";
         String json4 = "25.65";
         String json5 = "true";
-        String json6 = "1953-10-20";
-        String json7 = "2020-09-10T08:01";
+        String json6 = "\"1953-10-20\"";
+        String json7 = "\"2020-09-10T08:01\"";
 
         var obj = mapper.mapFromJson(json);
         var obj1 = mapper.mapFromJson(json1);
@@ -41,7 +41,7 @@ class ParseTest {
         assertThat(obj4).isEqualTo(Map.of("Primitive value", 25.65));
         assertThat(obj5).isEqualTo(Map.of("Primitive value", true));
         assertThat(obj6).isEqualTo(Map.of("Primitive value", LocalDate.of(1953, 10, 20)));
-        assertThat(obj7).isEqualTo(Map.of("Primitive value", LocalDateTime.parse(json7)));
+        assertThat(obj7).isEqualTo(Map.of("Primitive value", LocalDateTime.of(2020, 9, 10, 8, 1)));
     }
 
     @Test
@@ -131,5 +131,43 @@ class ParseTest {
                 "sex", 'M', "data", Arrays.asList(16, false, 3.14, "word"),
                 "friend", Map.of("name", "Alexander", "age", 22, "isHappy", true,
                         "luckyNumbers", Arrays.asList(16, 3.14))));
+    }
+
+    @Test
+    @DisplayName("Parsing LocalDate And LocalDate in array")
+    void jsonLocalDateAndLocalDateTimeParseToArray() {
+        String json = "[\"1953-10-20\" , \"2020-09-10T08:01\"]";
+
+        var obj = mapper.mapFromJson(json);
+
+        assertThat(obj).isEqualTo(Map.of("array", Arrays.asList(
+                LocalDate.of(1953, 10, 20),
+                LocalDateTime.of(2020, 9, 10, 8, 1))));
+    }
+
+    @Test
+    @DisplayName("Parsing LocalDate And LocalDate at array in array")
+    void jsonLocalDateAndLocalDateTimeParseToArrayInArray() {
+
+        String json = "[\"1953-10-20\", \"2020-09-10T08:01\",[\"2021-08-15T09:35\",\"1964-11-14\"]]";
+
+        var obj = mapper.mapFromJson(json);
+
+        assertThat(obj).isEqualTo(Map.of("array", Arrays.asList(
+                LocalDate.of(1953, 10, 20),
+                LocalDateTime.of(2020, 9, 10, 8, 1),
+                Arrays.asList(LocalDateTime.of(2021, 8, 15, 9, 35),
+                        LocalDate.of(1964, 11, 14)))));
+    }
+
+    @Test
+    @DisplayName("Parsing LocalDate And LocalDate as object")
+    void toStringAndLocalDateAndLocalDateTime() {
+        String json = "{\"dateOfBirth\":\"1953-10-20T10:05\",\"creationDate\":\"1964-11-14\"}";
+
+        var obj = mapper.mapFromJson(json);
+
+        assertThat(obj).isEqualTo(Map.of("dateOfBirth", LocalDateTime.of(1953, 10, 20, 10, 5),
+                "creationDate", LocalDate.of(1964, 11, 14)));
     }
 }
