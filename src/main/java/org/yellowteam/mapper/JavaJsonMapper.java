@@ -3,10 +3,6 @@ package org.yellowteam.mapper;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.function.IntConsumer;
-import java.util.function.Supplier;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -40,17 +36,17 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
         }
     }
     private String writeLocalDateToJson(Object object) {
-        if(isDateFormatterNull()){
-            return "\"%s\"".formatted(object.toString());
-        }else {
+        if (isDateFormatterNull()){
+            return "%s".formatted(object.toString());
+        } else {
             String dateWithPattern = dateFormatter.dateWithPattern(object);
-            return "\"%s\"".formatted(dateWithPattern);
+            return "%s".formatted(dateWithPattern);
         }
     }
     public String changeDatePattern(String jsonString,String pattern){
-        if(!isDateFormatterNull()) {
+        if (!isDateFormatterNull()) {
             return dateFormatter.changeJsonDateFormatter(jsonString, pattern);
-        }else {
+        } else {
             createDateFormatter(pattern);
             return  dateFormatter.changeJsonDateFormatter(jsonString);
         }
