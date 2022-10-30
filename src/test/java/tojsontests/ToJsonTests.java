@@ -136,8 +136,6 @@ class ToJsonTests {
 
         var authorToJson = mapper.toJson(author1);
         var authorWithDatePattern = mapper.changeDatePattern(authorToJson,"dd-MM-yyyy");
-        System.out.println(authorToJson);
-        System.out.println(authorWithDatePattern);
 
         assertThat(authorToJson).isNotEqualTo(authorWithDatePattern);
     }
