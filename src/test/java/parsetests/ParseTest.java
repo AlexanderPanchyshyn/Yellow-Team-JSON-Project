@@ -55,6 +55,27 @@ class ParseTest {
     }
 
     @Test
+    @DisplayName("Parsing Array in Array")
+    void toArray2() {
+        String json = "[false, 65.3, \"word\",[23,\"hello\",true]]";
+
+        var obj = mapper.mapFromJson(json);
+
+        assertThat(obj).isEqualTo(Map.of("array", Arrays.asList(false, 65.3, "word", Arrays.asList(23, "hello", true))));
+    }
+
+    @Test
+    @DisplayName("Parsing Array and Object in Array")
+    void toArray3() {
+        String json = "[false, 65.3, \"word\",[23,\"hello\",true],{\"name\":\"Alexander\",\"age\":22,\"isHappy\":true}]";
+
+        var obj = mapper.mapFromJson(json);
+
+        assertThat(obj).isEqualTo(Map.of("array", Arrays.asList(false, 65.3, "word", Arrays.asList(23, "hello", true),
+                Map.of("name", "Alexander", "age", 22, "isHappy", true))));
+    }
+
+    @Test
     @DisplayName("Parsing to String Object")
     void toStringObject() {
         String json = "{\"name\":\"Nick\",\"surName\":\"Johnson\"}";
@@ -81,16 +102,34 @@ class ParseTest {
 
         var obj = mapper.mapFromJson(json);
 
-        assertThat(obj).isEqualTo(Map.of("name", "Nick", "surName", "Johnson", "age", 25, "married", false, "hobby", "chess"));
+        assertThat(obj).isEqualTo(Map.of("name", "Nick", "surName", "Johnson", "age", 25,
+                "married", false, "hobby", "chess"));
     }
 
-//    @Test
-//    @DisplayName("Parsing to String, Number, Boolean and Array Objects")
-//    void jsonToArray() {
-//        String json = "{\"name\":\"Nick\",\"surName\":\"Johnson\",\"age\":25,\"sex\":\"M\",\"data\":[16,false,3.14,\"word\"]}";
-//
-//        var obj = mapper.mapFromJson(json);
-//
-//        assertThat(obj).isEqualTo(Map.of("name", "Nick", "surName", "Johnson", "age", 25, "sex", 'M', "data", Arrays.asList(16, false, 3.14, "word")));
-//    }
+    @Test
+    @DisplayName("Parsing to String, Number, Boolean and Array Objects")
+    void jsonToArrayObject() {
+        String json = "{\"name\":\"Nick\",\"surName\":\"Johnson\",\"age\":25,\"sex\":\"M\"," +
+                "\"data\":[16,false,3.14,\"word\"]}";
+
+        var obj = mapper.mapFromJson(json);
+
+        assertThat(obj).isEqualTo(Map.of("name", "Nick", "surName", "Johnson", "age", 25,
+                "sex", 'M', "data", Arrays.asList(16, false, 3.14, "word")));
+    }
+
+    @Test
+    @DisplayName("Parsing all possible Objects")
+    void jsonToObjectWithArraysAndObjects() {
+        String json = "{\"name\":\"Nick\",\"surName\":\"Johnson\",\"age\":25,\"sex\":\"M\"," +
+                "\"data\":[16,false,3.14,\"word\"],\"friend\":{\"name\":\"Alexander\",\"age\":22," +
+                "\"isHappy\":true,\"luckyNumbers\":[16,3.14]}}";
+
+        var obj = mapper.mapFromJson(json);
+
+        assertThat(obj).isEqualTo(Map.of("name", "Nick", "surName", "Johnson", "age", 25,
+                "sex", 'M', "data", Arrays.asList(16, false, 3.14, "word"),
+                "friend", Map.of("name", "Alexander", "age", 22, "isHappy", true,
+                        "luckyNumbers", Arrays.asList(16, 3.14))));
+    }
 }
