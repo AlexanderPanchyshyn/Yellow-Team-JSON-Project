@@ -128,4 +128,41 @@ class ToJsonTests {
         //Then
         assertThat(stringToJson).isEqualTo("{\"name\":\"{}[];:,,,}\",\"age\":42,\"dateOfBirth\":\"1975-04-20T10:05\"}");
     }
+
+    @Test
+    @DisplayName("Date add Pattern For Json")
+    void dateWithAddPatternTest(){
+        Author author1 = new Author("John Does", 42,LocalDateTime.of(1975, 4, 20, 10, 5));
+
+        var authorToJson = mapper.toJson(author1);
+        var authorWithDatePattern = mapper.changeDatePattern(authorToJson,"dd-MM-yyyy");
+        System.out.println(authorToJson);
+        System.out.println(authorWithDatePattern);
+
+        assertThat(authorToJson).isNotEqualTo(authorWithDatePattern);
+    }
+
+    @Test
+    @DisplayName("Change pattern")
+    void dateWithChangePatternTest(){
+        Author author1 = new Author("John Does", 42,LocalDateTime.of(1975, 4, 20, 10, 5));
+
+        mapper.withDatePattern("dd-MM-yyyy");
+
+        var authorToJson = mapper.toJson(author1);
+        var authorWithNewDatePattern = mapper.changeDatePattern(authorToJson,"yyyy-dd-MM");
+
+        assertThat(authorToJson).isNotEqualTo(authorWithNewDatePattern);
+    }
+
+    @Test
+    @DisplayName("Fail date pattern")
+    void wrongDatePattenTest(){
+        Author author1 = new Author("John Does", 46,LocalDateTime.of(1975, 4, 20, 10, 5));
+
+        mapper.withDatePattern("XDDD");
+        var authorToJson = mapper.toJson(author1);
+
+        assertThat(authorToJson).isEqualTo("{\"name\":\"John Does\",\"age\":46,\"dateOfBirth\":\"1975-04-20T10:05\"}");
+    }
 }

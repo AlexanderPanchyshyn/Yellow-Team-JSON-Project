@@ -14,6 +14,7 @@ Whole project will be based on JSON format.
 Project is created with:
 * Java version: 18
 * Jackson library version : 2.14
+* Junit library version:4.13.2
 ## Documentation
 - [Brief Use Case](https://github.com/AlexanderPanchyshyn/Yellow-Team-JSON-Project/blob/main/use-cases.md)
 ## Authors
