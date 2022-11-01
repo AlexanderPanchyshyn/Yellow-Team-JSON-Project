@@ -37,13 +37,13 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
     }
     private String writeLocalDateToJson(Object object) {
         if (isDateFormatterNull()){
-            return "%s".formatted(object.toString());
+            return "\"%s\"".formatted(object.toString());
         } else {
             String dateWithPattern = dateFormatter.dateWithPattern(object);
-            return "%s".formatted(dateWithPattern);
+            return "\"%s\"".formatted(dateWithPattern);
         }
     }
-    public String changeDatePattern(String jsonString,String pattern){
+    public String changeDatePattern(String jsonString,String pattern) {
         if (!isDateFormatterNull()) {
             return dateFormatter.changeJsonDateFormatter(jsonString, pattern);
         } else {
