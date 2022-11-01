@@ -1,5 +1,7 @@
 package org.yellowteam.mapper;
 
+import org.yellowteam.models.JsonElement;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -79,13 +81,25 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
     private String parseObject(Object object) {
         return "{" +
                 Arrays.stream(object.getClass().getDeclaredFields())
-                        .peek(field -> field.setAccessible(true)).map(field -> {
-                    try {
-                        return "\"" + field.getName() + "\":" + parseJson(field.get(object));
-                    } catch (ReflectiveOperationException roe) {
-                        throw new RuntimeException(roe);
-                    }
-                }).collect(Collectors.joining(",")) +
+                        .map(field -> {
+                            field.setAccessible(true);
+                            return field;
+                        }).map(field -> {
+                                    if (field.isAnnotationPresent(JsonElement.class)) {
+                                        try {
+                                            return "\"" + field.getAnnotation(JsonElement.class).name() + "\":" + parseJson(field.get(object));
+                                        } catch (ReflectiveOperationException roe) {
+                                            throw new RuntimeException(roe);
+                                        }
+                                    } else {
+                                        try {
+                                            return "\"" + field.getName() + "\":" + parseJson(field.get(object));
+                                        } catch (ReflectiveOperationException roe) {
+                                            throw new RuntimeException(roe);
+                                        }
+                                    }
+                                }
+                        ).collect(Collectors.joining(",")) +
                 "}";
     }
 
