@@ -1,5 +1,6 @@
 package org.yellowteam.mapper;
 
+import org.yellowteam.annotations.JsonElement;
 import net.rationalminds.LocalDateModel;
 import net.rationalminds.Parser;
 
@@ -13,9 +14,9 @@ import java.util.stream.StreamSupport;
 
 public class JavaJsonMapper implements JavaJsonMapperInterface {
 
-    private static final Class<?>[] VALUE_TYPES = new Class[] {Number.class, String.class, Character.class, Boolean.class};
-    private static final Class<?>[] QUOTATION_VALUES = new Class[] {String.class, Character.class};
-    private static final Class<?>[] NOT_QUOTATION_VALUES = new Class[] {Boolean.class, Number.class};
+    private static final Class<?>[] VALUE_TYPES = new Class[]{Number.class, String.class, Character.class, Boolean.class};
+    private static final Class<?>[] QUOTATION_VALUES = new Class[]{String.class, Character.class};
+    private static final Class<?>[] NOT_QUOTATION_VALUES = new Class[]{Boolean.class, Number.class};
     private DateTimeFormatter dateTimeFormatter;
     private SimpleDateFormat simpleDateFormat;
 
@@ -73,8 +74,7 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
     private LocalDate stringToLocaleDate(LocalDateModel dateModel){
         String dateString=dateModel.getOriginalText();
         String datePattern = dateModel.getIdentifiedDateFormat();
-        LocalDate localDateTime = LocalDate.parse(dateString, DateTimeFormatter.ofPattern(datePattern,Locale.US));
-        return localDateTime;
+        return LocalDate.parse(dateString, DateTimeFormatter.ofPattern(datePattern,Locale.US));
     }
 
    private String dateWithPattern(Object object){
@@ -101,13 +101,25 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
     private String parseObject(Object object) {
         return "{" +
                 Arrays.stream(object.getClass().getDeclaredFields())
-                        .peek(field -> field.setAccessible(true)).map(field -> {
-                    try {
-                        return "\"" + field.getName() + "\":" + parseJson(field.get(object));
-                    } catch (ReflectiveOperationException roe) {
-                        throw new RuntimeException(roe);
-                    }
-                }).collect(Collectors.joining(",")) +
+                        .map(field -> {
+                            field.setAccessible(true);
+                            return field;
+                        }).map(field -> {
+                                    if (field.isAnnotationPresent(JsonElement.class)) {
+                                        try {
+                                            return "\"" + field.getAnnotation(JsonElement.class).name() + "\":" + parseJson(field.get(object));
+                                        } catch (ReflectiveOperationException roe) {
+                                            throw new RuntimeException(roe);
+                                        }
+                                    } else {
+                                        try {
+                                            return "\"" + field.getName() + "\":" + parseJson(field.get(object));
+                                        } catch (ReflectiveOperationException roe) {
+                                            throw new RuntimeException(roe);
+                                        }
+                                    }
+                                }
+                        ).collect(Collectors.joining(",")) +
                 "}";
     }
 

@@ -136,9 +136,9 @@ class ToJsonTests {
     void dateWithAddPatternTest(){
         Author author1 = new Author("John Does", 42,LocalDateTime.of(1975, 4, 20, 10, 5));
 
-        JavaJsonMapper mapperWithDiffrentDatePattern = new JavaJsonMapper("yyyy-MM-dd");
+        JavaJsonMapper mapperWithDifferentDatePattern = new JavaJsonMapper("yyyy-MM-dd");
         var authorToJson = mapper.toJson(author1);
-        var authorWithDatePattern = mapperWithDiffrentDatePattern.toJson(author1);
+        var authorWithDatePattern = mapperWithDifferentDatePattern.toJson(author1);
 
         assertThat(authorToJson).isNotEqualTo(authorWithDatePattern);
     }
