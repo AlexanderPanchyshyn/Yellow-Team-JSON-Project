@@ -1,8 +1,8 @@
 
-# Bookshelf for bookworms
-The goal of the project is to design an application for book readers.
-Users will be able to add and edit a database of books.
-Also, each reader will have his own bookshelf with the books he has read.
+# Json Formatter
+The goal of the project is to design an application for json mapper.
+Users will be able to convert object,arrays and primitive types to json array.
+Each user could choose date pattern/format. In addition, there will be prettified function for json format. 
 Whole project will be based on JSON format.
 
 ## Table of contents
@@ -12,11 +12,15 @@ Whole project will be based on JSON format.
 
 ## Technologies
 Project is created with:
-* Java version: 18
-* Jackson library version : 2.14
-* Junit library version:4.13.2
+* Java version : 18
+* Jackson's library version : 2.14
+* Junit library version : 4.13.2
+* DateParser library version : 1.4
 ## Documentation
 - [Brief Use Case](https://github.com/AlexanderPanchyshyn/Yellow-Team-JSON-Project/blob/main/use-cases.md)
+- [Architecture diagram]()
+- [User story]() 
+- [Test Cases]()
 ## Authors
 - [@Maciej Matusz](https://github.com/TheSuperiorMatusz)
 - [@Alexander Panchyshyn](https://github.com/AlexanderPanchyshyn)

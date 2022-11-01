@@ -6,70 +6,62 @@ Process actors and their goals
 
 | Actor | Goal                                        |
 |-------|---------------------------------------------|
-| User  | Verify if a book is in the book database    |
-| User  | Wants to add a book to book database        |
-| User  | Wants to delete a book from book database   |
-| User  | Wants add more characters to the book       | 
-| User  | Wants to add book to his personal bookshelf |
-| User  | Wants to update his personal bookshelf      |
-| User  | Wants to delete his personal bookshelf      |
-| User  | Want to add a new Author to database        |
-| User  | Want search for the book with given author  |
-| User  | Want to add a new Author to database        |
- | User  | Want search for the book with given author  |
+| User  | Wants to parse book to json format          |
+| User  | Wants to parse bookshelf to json format     |
+| User  | Wants to parse author to json format        |
+| User  | Wants to date pattern for json format       |
+| User  | Wants to customize json format              |
+| User  | Wants to parse a number to json format      |
+| User  | Wants to parse a date to json format        |
+| User  | Wants to parse a text to json format        |
+| User  | Wants parse collection to json format       |
 
 
 
 Dictionary
 -------
-
-
+| Word  | Meaning                                     |
+|-------|---------------------------------------------|
+| JSON  |JavaScript Object Notation Is an open standard file format and data interchange format that uses human-readable text to store and transmit data objects consisting of attribute–value pairs and arrays (or other serializable values). 
 
 Use cases
 ----------------
 
-### Use case 1: User verify if book is in book database
-A user logs in to the system. The user selects option manage books. Then select check if the book is in book database. 
-The system displays a message.
+### Use case 1: User parse book to json format
+A user logs in to the system. User choose option to create a book and parse to json format. User fulfil information about a book.
+System parse book object to json format. System displays information.
 
-### Use case 2: User add book to database
-A user logs in to the system. The user selects option manage books. Then select add book to book database.
-The user fulfill information about book.System add book to book database. The system displays a message.
+### Use case 2: User parse bookshelf to json format
+A user logs in to the system. User choose option to create an author and parse to json format. User fulfil information about a bookshelf.
+System parse bookshelf object to json format. System displays information.
 
-### Use case 3: User delete book from database
-A user logs in to the system. The user selects option manage books.The select delete book from book database.
-The user choose a book to delete. System delete the book from book database. The system displays a message.
+### Use case 3: User parse author to json format
+A user logs in to the system. User choose option to create a book and parse to json format. User fulfil information about an author.
+System parse author object to json format. System displays information.
 
-### Use case 4: User want to add more character to the book
-A user logs in to the system. The user selects option manage books.The select add characters to the book from book database.
-The user choose a book to add more characters. System update book in  book database. The system displays a message.
+### Use case 4: User choose date pattern for json 
+A user logs in to the system. User choose option date pattern. User fulfil information about date pattern which
+will be for json format. System displays information.
+
+### Use case 5: User customize json format.
+A user logs in to the system. User choose option customize json format. User fulfil information how json format should look like. 
+System displays information.
+
+### Use case 6: User parse number to json format
+A user logs in to the system. User choose option to create a number and parse to json format. User fulfil information about number.
+System parse number to json format. System displays information.
+
+### Use case 7: User parse date to json format
+A user logs in to the system. User choose option to create a date and parse to json format. User fulfil information about date.
+System parse date to json format. System displays information.
+
+### Use case 8: User parse text to json format
+A user logs in to the system. User choose option to create a text and parse to json format. User fulfil information about number.
+System parse text to json format. System displays information.
+
+### Use case 9: User parse collection to json format
+A user logs in to the system. User choose option to create a collection and parse to json format. User fulfil information about collection.
+System parse text to json format. System displays information.
 
 
-### Use case 6 : User add book to his personal bookshelf
-A user logs in to the system. The user selects option manage bookshelf.Then select add book to his personal bookshelf.
-The user choose a book to add. System add the book to user personal bookshelf. The system displays a message.
-
-### Use case 6 : User update his personal bookshelf
-A user logs in to the system. The user selects option manage bookshelf. Then select update to his personal bookshelf.
-The user choose a book to add. System add the book to user personal bookshelf. The system displays a message.
-
-### Use case 7: User delete his personal bookshelf
-A user logs in to the system. The user selects option manage bookshelf.Then select delete his personal bookshelf.
-System delete the user bookshelf. The system displays a message.
-
-### Use case 8: User add new author
-A user logs in to the system. The user selects option manage authors. Then select add author to authors  database.
-The user fulfill information about author.System add author to  database. The system displays a message.
-
-### Use case 9: User search for books with given author
-A user logs in to the system. The user selects option manage books. Then select search books with author from book database.
-The user fulfill information about author. System search books with given author to database. The system displays a message.
-
-### Use case 8: User add new author
-A user logs in to the system. The user selects option manage authors. Then select add author to authors  database.
-The user fulfill information about author.System add author to  database. The system displays a message.
-
-### Use case 9: User search for books with given author
-A user logs in to the system. The user selects option manage books. Then select search books with author from book database.
-The user fulfill information about author. System search books with given author to database. The system displays a message.
 
