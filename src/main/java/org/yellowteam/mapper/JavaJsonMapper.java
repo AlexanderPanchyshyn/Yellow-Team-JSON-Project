@@ -1,5 +1,7 @@
 package org.yellowteam.mapper;
 
+import org.yellowteam.models.JsonElement;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -8,11 +10,10 @@ import java.util.stream.StreamSupport;
 
 public class JavaJsonMapper implements JavaJsonMapperInterface {
 
-    private static final Class<?>[] VALUE_TYPES = new Class[] {Number.class, String.class, Character.class, Boolean.class};
-    private static final Class<?>[] QUOTATION_VALUES = new Class[] {String.class, Character.class};
-    private static final Class<?>[] NOT_QUOTATION_VALUES = new Class[] {Boolean.class, Number.class};
+    private static final Class<?>[] VALUE_TYPES = new Class[]{Number.class, String.class, Character.class, Boolean.class};
+    private static final Class<?>[] QUOTATION_VALUES = new Class[]{String.class, Character.class};
+    private static final Class<?>[] NOT_QUOTATION_VALUES = new Class[]{Boolean.class, Number.class};
     private DateJsonFormatter dateFormatter;
-
 
 
     @Override
@@ -35,35 +36,48 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
             return parseObject(object);
         }
     }
+
     private String writeLocalDateToJson(Object object) {
-        if (isDateFormatterNull()){
+<<<<<<< HEAD
+        if (isDateFormatterNull()) {
             return "\"%s\"".formatted(object.toString());
+=======
+        if (isDateFormatterNull()){
+            return "%s".formatted(object.toString());
+>>>>>>> parent of 2414c8f (Merge pull request #80 from AlexanderPanchyshyn/Alexander)
         } else {
             String dateWithPattern = dateFormatter.dateWithPattern(object);
-            return "\"%s\"".formatted(dateWithPattern);
+            return "%s".formatted(dateWithPattern);
         }
     }
-    public String changeDatePattern(String jsonString,String pattern) {
+<<<<<<< HEAD
+
+    public String changeDatePattern(String jsonString, String pattern) {
+=======
+    public String changeDatePattern(String jsonString,String pattern){
+>>>>>>> parent of 2414c8f (Merge pull request #80 from AlexanderPanchyshyn/Alexander)
         if (!isDateFormatterNull()) {
             return dateFormatter.changeJsonDateFormatter(jsonString, pattern);
         } else {
             createDateFormatter(pattern);
-            return  dateFormatter.changeJsonDateFormatter(jsonString);
+            return dateFormatter.changeJsonDateFormatter(jsonString);
         }
     }
 
-    public void withDatePattern(String pattern){
-        if(isDateFormatterNull()){
+    public void withDatePattern(String pattern) {
+        if (isDateFormatterNull()) {
             createDateFormatter(pattern);
-        }else {
+        } else {
             dateFormatter.changeDatePattern(pattern);
         }
     }
-    private boolean isDateFormatterNull(){
-        return dateFormatter==null;
+
+    private boolean isDateFormatterNull() {
+        return dateFormatter == null;
     }
-    private void createDateFormatter(String pattern){
-         dateFormatter= new DateJsonFormatter(pattern);
+
+    private void createDateFormatter(String pattern) {
+        dateFormatter = new DateJsonFormatter(pattern);
     }
 
 
@@ -79,13 +93,25 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
     private String parseObject(Object object) {
         return "{" +
                 Arrays.stream(object.getClass().getDeclaredFields())
-                        .peek(field -> field.setAccessible(true)).map(field -> {
-                    try {
-                        return "\"" + field.getName() + "\":" + parseJson(field.get(object));
-                    } catch (ReflectiveOperationException roe) {
-                        throw new RuntimeException(roe);
-                    }
-                }).collect(Collectors.joining(",")) +
+                        .map(field -> {
+                            field.setAccessible(true);
+                            return field;
+                        }).map(field -> {
+                                    if (field.isAnnotationPresent(JsonElement.class)) {
+                                        try {
+                                            return "\"" + field.getAnnotation(JsonElement.class).name() + "\":" + parseJson(field.get(object));
+                                        } catch (ReflectiveOperationException roe) {
+                                            throw new RuntimeException(roe);
+                                        }
+                                    } else {
+                                        try {
+                                            return "\"" + field.getName() + "\":" + parseJson(field.get(object));
+                                        } catch (ReflectiveOperationException roe) {
+                                            throw new RuntimeException(roe);
+                                        }
+                                    }
+                                }
+                        ).collect(Collectors.joining(",")) +
                 "}";
     }
 
