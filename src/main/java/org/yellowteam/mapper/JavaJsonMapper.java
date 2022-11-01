@@ -1,6 +1,6 @@
 package org.yellowteam.mapper;
 
-import org.yellowteam.models.JsonElement;
+import org.yellowteam.annotations.JsonElement;
 import net.rationalminds.LocalDateModel;
 import net.rationalminds.Parser;
 

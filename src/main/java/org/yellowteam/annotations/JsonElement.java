@@ -1,4 +1,4 @@
-package org.yellowteam.models;
+package org.yellowteam.annotations;
 
 import java.lang.annotation.*;
 
