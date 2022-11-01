@@ -1,9 +1,13 @@
 package org.yellowteam.mapper;
 
 import org.yellowteam.models.JsonElement;
+import net.rationalminds.LocalDateModel;
+import net.rationalminds.Parser;
 
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -13,8 +17,21 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
     private static final Class<?>[] VALUE_TYPES = new Class[]{Number.class, String.class, Character.class, Boolean.class};
     private static final Class<?>[] QUOTATION_VALUES = new Class[]{String.class, Character.class};
     private static final Class<?>[] NOT_QUOTATION_VALUES = new Class[]{Boolean.class, Number.class};
-    private DateJsonFormatter dateFormatter;
+    private DateTimeFormatter dateTimeFormatter;
+    private SimpleDateFormat simpleDateFormat;
 
+    public JavaJsonMapper(){
+        this("dd-MM-yyyy");
+    }
+    public JavaJsonMapper(String datePattern){
+        try{
+            dateTimeFormatter = DateTimeFormatter.ofPattern(datePattern);
+            simpleDateFormat = new SimpleDateFormat(datePattern);
+        }catch (Exception e){
+            dateTimeFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+            simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy");
+        }
+    }
 
     @Override
     public String toJson(Object o) {
@@ -30,49 +47,49 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
             return parseArray(Arrays.stream(((Object[]) object)).toList());
         } else if (isTypeInArray(object.getClass(), VALUE_TYPES)) {
             return parseValues(object);
-        } else if (object instanceof LocalDateTime || object instanceof LocalDate) {
+        } else if (object instanceof LocalDateTime || object instanceof LocalDate || object instanceof Date) {
             return writeLocalDateToJson(object);
         } else {
             return parseObject(object);
         }
     }
-
     private String writeLocalDateToJson(Object object) {
-        if (isDateFormatterNull()) {
-            return "\"%s\"".formatted(object.toString());
-        } else {
-            String dateWithPattern = dateFormatter.dateWithPattern(object);
+            String dateWithPattern = dateWithPattern(object);
             return "\"%s\"".formatted(dateWithPattern);
+
+    }
+    public String changeJsonDatePattern(String jsonString){
+        Parser parserDate = new Parser();
+        List<LocalDateModel> dateModels = parserDate.parse(jsonString);
+        for ( var dateModel:dateModels
+        ) {
+            LocalDate localDate = stringToLocaleDate(dateModel);
+            String newDatePattern = dateWithPattern(localDate);
+            int positionStartDate =dateModels.get(0).getStart()-1;
+            int positionEndDate = dateModels.get(0).getEnd();
+            jsonString = jsonString.substring(0,positionStartDate) + newDatePattern + jsonString.substring(positionEndDate);
         }
+        return jsonString;
+    }
+    private LocalDate stringToLocaleDate(LocalDateModel dateModel){
+        String dateString=dateModel.getOriginalText();
+        String datePattern = dateModel.getIdentifiedDateFormat();
+        return LocalDate.parse(dateString, DateTimeFormatter.ofPattern(datePattern,Locale.US));
     }
 
-    public String changeDatePattern(String jsonString, String pattern) {
-        if (!isDateFormatterNull()) {
-            return dateFormatter.changeJsonDateFormatter(jsonString, pattern);
-        } else {
-            createDateFormatter(pattern);
-            return dateFormatter.changeJsonDateFormatter(jsonString);
-        }
-    }
+   private String dateWithPattern(Object object){
+       if (object instanceof LocalDate localDate) {
+           return localDate.format(dateTimeFormatter);
+       }
+       if (object instanceof LocalDateTime localDateTime) {
+           return localDateTime.format(dateTimeFormatter);
+       }
+       if (object instanceof Date date) {
+           return simpleDateFormat.format(date);
+       }
+       return object.toString();
 
-    public void withDatePattern(String pattern) {
-        if (isDateFormatterNull()) {
-            createDateFormatter(pattern);
-        } else {
-            dateFormatter.changeDatePattern(pattern);
-        }
-    }
-
-    private boolean isDateFormatterNull() {
-        return dateFormatter == null;
-    }
-
-    private void createDateFormatter(String pattern) {
-        dateFormatter = new DateJsonFormatter(pattern);
-    }
-
-
-
+   }
     private <T> String parseArray(Iterable<T> array) {
         return "[" +
                 StreamSupport.stream(array.spliterator(), false)
