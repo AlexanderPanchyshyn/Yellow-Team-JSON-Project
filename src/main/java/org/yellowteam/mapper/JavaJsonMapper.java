@@ -128,7 +128,7 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
             return "\"" + value + "\"";
         } else if (isTypeInArray(value.getClass(), NOT_QUOTATION_VALUES)) {
             return String.valueOf(value);
-        } else if (value instanceof LocalDateTime || value instanceof LocalDate) {
+        } else if (value instanceof LocalDateTime || value instanceof LocalDate || value instanceof Date) {
             return writeLocalDateToJson(value);
         } else {
             throw new RuntimeException("Invalid object parsed as value type: %s".formatted(value.getClass()));
