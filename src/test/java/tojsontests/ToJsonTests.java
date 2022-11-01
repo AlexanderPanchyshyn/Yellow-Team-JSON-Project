@@ -163,6 +163,6 @@ class ToJsonTests {
         JavaJsonMapper mapperWithWrongPattern = new JavaJsonMapper("pattern");
         var authorToJson = mapper.toJson(author1);
 
-        assertThat(authorToJson).isEqualTo("{\"name\":\"John Does\",\"age\":46,\"dateOfBirth\":\"1975-04-20T10:05\"}");
+        assertThat(authorToJson).isEqualTo("{\"name\":\"John Does\",\"age\":46,\"dateOfBirth\":\"20-04-1975\"}");
     }
 }

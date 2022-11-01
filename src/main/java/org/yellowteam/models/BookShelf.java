@@ -1,6 +1,7 @@
 package org.yellowteam.models;
 
 import lombok.*;
+import org.yellowteam.annotations.JsonElement;
 
 import java.util.List;
 
