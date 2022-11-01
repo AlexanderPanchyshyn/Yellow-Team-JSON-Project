@@ -10,10 +10,7 @@ import java.time.LocalDateTime;
 @Getter
 @Builder
 public class Author {
-    @JsonElement(name = "name")
     private String name;
-    @JsonElement(name = "age")
     private int age;
-    @JsonElement(name = "dateOfBirth")
     private LocalDateTime dateOfBirth;
 }
