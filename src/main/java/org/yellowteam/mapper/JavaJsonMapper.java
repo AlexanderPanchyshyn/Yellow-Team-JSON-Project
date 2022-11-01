@@ -46,7 +46,7 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
             return parseArray(Arrays.stream(((Object[]) object)).toList());
         } else if (isTypeInArray(object.getClass(), VALUE_TYPES)) {
             return parseValues(object);
-        } else if (object instanceof LocalDateTime || object instanceof LocalDate) {
+        } else if (object instanceof LocalDateTime || object instanceof LocalDate || object instanceof Date) {
             return writeLocalDateToJson(object);
         } else {
             return parseObject(object);
@@ -57,7 +57,7 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
             return "\"%s\"".formatted(dateWithPattern);
 
     }
-    public String changeDatePattern(String jsonString){
+    public String changeJsonDatePattern(String jsonString){
         Parser parserDate = new Parser();
         List<LocalDateModel> dateModels = parserDate.parse(jsonString);
         for ( var dateModel:dateModels
