@@ -38,15 +38,24 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
     }
 
     private String writeLocalDateToJson(Object object) {
+<<<<<<< HEAD
         if (isDateFormatterNull()) {
             return "\"%s\"".formatted(object.toString());
+=======
+        if (isDateFormatterNull()){
+            return "%s".formatted(object.toString());
+>>>>>>> parent of 2414c8f (Merge pull request #80 from AlexanderPanchyshyn/Alexander)
         } else {
             String dateWithPattern = dateFormatter.dateWithPattern(object);
-            return "\"%s\"".formatted(dateWithPattern);
+            return "%s".formatted(dateWithPattern);
         }
     }
+<<<<<<< HEAD
 
     public String changeDatePattern(String jsonString, String pattern) {
+=======
+    public String changeDatePattern(String jsonString,String pattern){
+>>>>>>> parent of 2414c8f (Merge pull request #80 from AlexanderPanchyshyn/Alexander)
         if (!isDateFormatterNull()) {
             return dateFormatter.changeJsonDateFormatter(jsonString, pattern);
         } else {
