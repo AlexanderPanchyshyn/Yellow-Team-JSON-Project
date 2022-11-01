@@ -42,6 +42,7 @@ class ToJsonTests {
 
         //When
         var jsonBook = mapper.toJson(book2);
+        System.out.println(jsonBook);
 
         //Then
         assertThat(jsonBook).isEqualTo("{\"title\":\"Bible\",\"year\":1024,\"characters\":[\"God\",\"Jesus\",\"Messiah\"],\"isOriginalEdition\":false,\"author\":{\"name\":\"Oleg Tichina\",\"age\":37,\"dateOfBirth\":\"1921-05-04T08:10\"}}");

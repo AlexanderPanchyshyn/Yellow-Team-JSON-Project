@@ -1,7 +1,5 @@
 package org.yellowteam.models;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -12,10 +10,10 @@ import java.time.LocalDateTime;
 @Getter
 @Builder
 public class Author {
-    @JsonProperty("Name")
+    @JsonElement(name = "name")
     private String name;
-    @JsonProperty("Age")
+    @JsonElement(name = "age")
     private int age;
-    @JsonProperty("DateOfBirth")
+    @JsonElement(name = "dateOfBirth")
     private LocalDateTime dateOfBirth;
 }

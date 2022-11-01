@@ -1,21 +1,21 @@
 package org.yellowteam.models;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
 import java.util.List;
 
 @AllArgsConstructor
-@Getter @Builder
+@Getter
 public class Book {
-    @JsonProperty("Title")
+    @JsonElement(name = "title")
     private String title;
-    @JsonProperty("Year")
+    @JsonElement(name = "year")
     private int year;
-    @JsonProperty("Characters")
+    @JsonElement(name = "characters")
     private List<String> characters;
-    @JsonProperty("IsOriginalEdition")
+    @JsonElement(name = "isOriginalEdition")
     private boolean isOriginalEdition;
-    @JsonProperty("Author")
+    @JsonElement(name = "author")
     private Author author;
+
 }
