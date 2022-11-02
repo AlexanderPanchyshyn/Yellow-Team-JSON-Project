@@ -24,9 +24,7 @@ class ToJsonTests {
 
         //When
         var jsonAuthor = mapper.toJson(author1);
-        System.out.println(jsonAuthor);
         var jsonAuthor2 = mapper.toJson(author2);
-        System.out.println(jsonAuthor2);
 
         //Then
         assertThat(jsonAuthor).isEqualTo("{\"name\":\"John Doe\",\"age\":56,\"dateOfBirth\":\"20-10-1953\"}");
