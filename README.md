@@ -8,6 +8,7 @@ Whole project will be based on JSON format.
 ## Table of contents
 * [Documentation](#documentation)
 * [Technologies](#technologies)
+* [Authors](*authors)
 
 
 ## Technologies
@@ -18,9 +19,10 @@ Project is created with:
 * DateParser library version : 1.4
 ## Documentation
 - [Brief Use Case](https://github.com/AlexanderPanchyshyn/Yellow-Team-JSON-Project/blob/main/use-cases.md)
-- [Architecture diagram]()
-- [User story]() 
-- [Test Cases]()
+- [System of context && How works parser to json](https://github.com/AlexanderPanchyshyn/Yellow-Team-JSON-Project/blob/MaciejMatusz/System%20of%20context.pdf)
+- [How works parser from json](https://github.com/AlexanderPanchyshyn/Yellow-Team-JSON-Project/blob/MaciejMatusz/JavaJsonMapper%20to%20json.pdf)
+- [User story](https://github.com/AlexanderPanchyshyn/Yellow-Team-JSON-Project/blob/MaciejMatusz/user-stories.md) 
+- [Test Cases](https://github.com/AlexanderPanchyshyn/Yellow-Team-JSON-Project/blob/MaciejMatusz/test-cases.md)
 ## Authors
 - [@Maciej Matusz](https://github.com/TheSuperiorMatusz)
 - [@Alexander Panchyshyn](https://github.com/AlexanderPanchyshyn)
