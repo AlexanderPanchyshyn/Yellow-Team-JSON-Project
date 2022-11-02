@@ -4,17 +4,18 @@ Description of brief use cases
 Process actors and their goals
 --------------------------
 
-| Actor | Goal                                        |
-|-------|---------------------------------------------|
-| User  | Wants to parse book to json format          |
-| User  | Wants to parse bookshelf to json format     |
-| User  | Wants to parse author to json format        |
-| User  | Wants to date pattern for json format       |
-| User  | Wants to customize json format              |
-| User  | Wants to parse a number to json format      |
-| User  | Wants to parse a date to json format        |
-| User  | Wants to parse a text to json format        |
-| User  | Wants parse collection to json format       |
+| Actor | Goal                                    |
+|-------|-----------------------------------------|
+| User  | Wants to parse book to json format      |
+| User  | Wants to parse bookshelf to json format |
+| User  | Wants to parse author to json format    |
+| User  | Wants to date pattern for json format   |
+| User  | Wants to customize json format          |
+| User  | Wants to parse a number to json format  |
+| User  | Wants to parse a date to json format    |
+| User  | Wants to parse a text to json format    |
+| User  | Wants parse collection to json format   |
+ | User  | Wants retrevie data from json format    |
 
 
 
@@ -63,5 +64,8 @@ System parse text to json format. System displays information.
 A user logs in to the system. User choose option to create a collection and parse to json format. User fulfil information about collection.
 System parse text to json format. System displays information.
 
+### Use case 10: User retrieving date from json format
+A user logs in the system. User choose option to retrieve data from json string. User fulfil information about source json.
+System retrieving data from json format. System displays information.
 
 

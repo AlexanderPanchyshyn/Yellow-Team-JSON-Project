@@ -10,4 +10,5 @@
 | Check different  date pattern logic        | Check if parser with different date pattern  isn't equal to parser with default parser  | Difference within json structure  |
 | Change date pattern to another logic       | Check if new json structure with different date pattern isn't equal to previous pattern | Difference within json structure  |
 | Check json prettier logic                  | Check if parser prettier did the json structure like user wants                         | Correct json structure appearance |
+| Check variables from json structure        | Check if variables from json string is same as variables in java                        | Correct variable from json        |
 
