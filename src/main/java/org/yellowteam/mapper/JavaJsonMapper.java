@@ -33,6 +33,10 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
         }
     }
 
+    private boolean isTypeInArray(Class<?> mainType, Class<?>[] arrayOfTypes) {
+        return Arrays.stream(arrayOfTypes).anyMatch(t -> t.isAssignableFrom(mainType));
+    }
+
     @Override
     public String toJson(Object o) {
         return parseJson(o);
@@ -41,18 +45,64 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
     private String parseJson(Object object) {
         if (Objects.isNull(object)) {
             return "null";
+        } else if (isTypeInArray(object.getClass(), VALUE_TYPES)) {
+            return parseValues(object);
         } else if (Iterable.class.isAssignableFrom(object.getClass())) {
             return parseArray((Iterable<?>) object);
         } else if (object.getClass().isArray()) {
             return parseArray(Arrays.stream(((Object[]) object)).toList());
-        } else if (isTypeInArray(object.getClass(), VALUE_TYPES)) {
-            return parseValues(object);
         } else if (object instanceof LocalDateTime || object instanceof LocalDate || object instanceof Date) {
             return writeLocalDateToJson(object);
         } else {
             return parseObject(object);
         }
     }
+
+    private String parseObject(Object object) {
+        return "{" +
+                Arrays.stream(object.getClass().getDeclaredFields())
+                        .map(field -> {
+                            field.setAccessible(true);
+                            return field;
+                        }).map(field -> {
+                                    if (field.isAnnotationPresent(JsonElement.class)) {
+                                        try {
+                                            return "\"" + field.getAnnotation(JsonElement.class).name() + "\":" + parseJson(field.get(object));
+                                        } catch (ReflectiveOperationException roe) {
+                                            throw new RuntimeException(roe);
+                                        }
+                                    } else {
+                                        try {
+                                            return "\"" + field.getName() + "\":" + parseJson(field.get(object));
+                                        } catch (ReflectiveOperationException roe) {
+                                            throw new RuntimeException(roe);
+                                        }
+                                    }
+                                }
+                        ).collect(Collectors.joining(",")) +
+                "}";
+    }
+
+    private <T> String parseArray(Iterable<T> array) {
+        return "[" +
+                StreamSupport.stream(array.spliterator(), false)
+                        .map(this::parseJson)
+                        .collect(Collectors.joining(",")) +
+                "]";
+    }
+
+    private String parseValues(Object value) {
+        if (isTypeInArray(value.getClass(), QUOTATION_VALUES)) {
+            return "\"" + value + "\"";
+        } else if (isTypeInArray(value.getClass(), NOT_QUOTATION_VALUES)) {
+            return String.valueOf(value);
+        } else if (value instanceof LocalDateTime || value instanceof LocalDate || value instanceof Date) {
+            return writeLocalDateToJson(value);
+        } else {
+            throw new RuntimeException("Invalid object parsed as value type: %s".formatted(value.getClass()));
+        }
+    }
+
     private String writeLocalDateToJson(Object object) {
             String dateWithPattern = dateWithPattern(object);
             return "\"%s\"".formatted(dateWithPattern);
@@ -90,54 +140,6 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
        return object.toString();
 
    }
-    private <T> String parseArray(Iterable<T> array) {
-        return "[" +
-                StreamSupport.stream(array.spliterator(), false)
-                        .map(this::parseJson)
-                        .collect(Collectors.joining(",")) +
-                "]";
-    }
-
-    private String parseObject(Object object) {
-        return "{" +
-                Arrays.stream(object.getClass().getDeclaredFields())
-                        .map(field -> {
-                            field.setAccessible(true);
-                            return field;
-                        }).map(field -> {
-                                    if (field.isAnnotationPresent(JsonElement.class)) {
-                                        try {
-                                            return "\"" + field.getAnnotation(JsonElement.class).name() + "\":" + parseJson(field.get(object));
-                                        } catch (ReflectiveOperationException roe) {
-                                            throw new RuntimeException(roe);
-                                        }
-                                    } else {
-                                        try {
-                                            return "\"" + field.getName() + "\":" + parseJson(field.get(object));
-                                        } catch (ReflectiveOperationException roe) {
-                                            throw new RuntimeException(roe);
-                                        }
-                                    }
-                                }
-                        ).collect(Collectors.joining(",")) +
-                "}";
-    }
-
-    private String parseValues(Object value) {
-        if (isTypeInArray(value.getClass(), QUOTATION_VALUES)) {
-            return "\"" + value + "\"";
-        } else if (isTypeInArray(value.getClass(), NOT_QUOTATION_VALUES)) {
-            return String.valueOf(value);
-        } else if (value instanceof LocalDateTime || value instanceof LocalDate || value instanceof Date) {
-            return writeLocalDateToJson(value);
-        } else {
-            throw new RuntimeException("Invalid object parsed as value type: %s".formatted(value.getClass()));
-        }
-    }
-
-    private boolean isTypeInArray(Class<?> mainType, Class<?>[] arrayOfTypes) {
-        return Arrays.stream(arrayOfTypes).anyMatch(t -> t.isAssignableFrom(mainType));
-    }
 
     @Override
     public Map<String, Object> mapFromJson(String json) {
