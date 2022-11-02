@@ -48,12 +48,12 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
         } else if (isTypeInArray(object.getClass(), VALUE_TYPES)) {
             return parseValues(object);
         } else if (object instanceof LocalDateTime || object instanceof LocalDate || object instanceof Date) {
-            return writeLocalDateToJson(object);
+            return writeDatesToJson(object);
         } else {
             return parseObject(object);
         }
     }
-    private String writeLocalDateToJson(Object object) {
+    private String writeDatesToJson(Object object) {
             String dateWithPattern = dateWithPattern(object);
             return "\"%s\"".formatted(dateWithPattern);
 
@@ -129,7 +129,7 @@ public class JavaJsonMapper implements JavaJsonMapperInterface {
         } else if (isTypeInArray(value.getClass(), NOT_QUOTATION_VALUES)) {
             return String.valueOf(value);
         } else if (value instanceof LocalDateTime || value instanceof LocalDate || value instanceof Date) {
-            return writeLocalDateToJson(value);
+            return writeDatesToJson(value);
         } else {
             throw new RuntimeException("Invalid object parsed as value type: %s".formatted(value.getClass()));
         }
